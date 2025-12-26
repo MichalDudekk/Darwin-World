@@ -2,12 +2,12 @@ package app.presenter;
 
 public record Params(
         int MapWidth,
-        int mapHeigth,
+        int mapHeight,
         int initialPlantsNum,
         int plantMinEnergy,
-        int planMaxEnergy,
+        int plantMaxEnergy,
         int dailyPlantGrowth,
-        int initalAnimalsNum,
+        int initialAnimalsNum,
         int animalEnergyLoss,
         int energyNeededToReproduce,
         int energyUsedToReproduce,

@@ -10,15 +10,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import javafx.scene.control.Label;
+import javafx.scene.paint.Color;
 
 public class ConfigurationManager {
     private final String folderPath;
     private final Gson gson;
+    private final Label infoField;
 
-    public ConfigurationManager(String folderPath) {
+    public ConfigurationManager(String folderPath, Label infoField) {
         this.folderPath = folderPath;
-
         this.gson = new GsonBuilder().setPrettyPrinting().create();
+        this.infoField = infoField;
     }
 
     private void createConfigFolder() {
@@ -28,11 +31,14 @@ public class ConfigurationManager {
                 Files.createDirectories(path);
             }
         } catch (IOException e) {
-            System.err.println("Nie udało się utworzyć folderu konfiguracji: " + e.getMessage()));
+            infoField.setTextFill(Color.RED);
+            infoField.setText("Nie udało się utworzyć folderu konfiguracji: " + e.getMessage());
         }
     }
 
     public void saveConfig(Params config, String filename) {
+        createConfigFolder();
+
         if (!filename.endsWith(".json")) {
             filename += ".json";
         }
@@ -41,9 +47,11 @@ public class ConfigurationManager {
 
         try (FileWriter writer = new FileWriter(fullPath)) {
             gson.toJson(config, writer);
-            System.err.printf("Zapisano konfigutracje do: %s%n", fullPath);
+            infoField.setTextFill(Color.GREEN);
+            infoField.setText("Zapisano konfiguracje do: %s".formatted(fullPath));
         } catch (IOException e) {
-            System.err.println("Błąd zapisu konfiguracji: " + e.getMessage());
+            infoField.setTextFill(Color.RED);
+            infoField.setText("Błąd zapisu konfiguracji: %s".formatted(e.getMessage()));
         }
     }
 
@@ -55,9 +63,15 @@ public class ConfigurationManager {
         String fullPath = folderPath + "/" + filename;
 
         try (FileReader reader = new FileReader(fullPath)) {
-            return gson.fromJson(reader, Params.class);
+            Params read = gson.fromJson(reader, Params.class);
+
+            infoField.setTextFill(Color.GREEN);
+            infoField.setText("Wczytano konfiguracje z: %s".formatted(fullPath));
+
+            return read;
         } catch (IOException e) {
-            System.err.println("Błąd odczytu konfiguracji: " + e.getMessage());
+            infoField.setTextFill(Color.RED);
+            infoField.setText("Błąd odczytu konfiguracji: %s".formatted(e.getMessage()));
             return null;
         }
     }

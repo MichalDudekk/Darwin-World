@@ -13,7 +13,7 @@ public class App extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/StartMenu.fxml"));
 
         // Tworzenie sceny
-        Scene scene = new Scene(loader.load(), 450, 700); // Wymiary okna
+        Scene scene = new Scene(loader.load(), 500, 700); // Wymiary okna
 
         primaryStage.setTitle("Evolution Generator - Konfiguracja");
         primaryStage.setScene(scene);

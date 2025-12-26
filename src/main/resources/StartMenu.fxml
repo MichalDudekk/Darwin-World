@@ -31,6 +31,8 @@
             </HBox>
         </TitledPane>
 
+        <Label fx:id="configInfo"/>
+
         <TitledPane text="Ustawienia Mapy" collapsible="false">
             <GridPane hgap="10" vgap="10">
                 <Label text="Szerokość:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
@@ -105,6 +107,6 @@
 
         <Label fx:id="errorLabel" textFill="RED"/>
 
-        <Button text="ROZPOCZNIJ SYMULACJĘ" onAction="#onStartClicked" prefWidth="200" prefHeight="40" style="-fx-font-weight: bold; -fx-base: #b6e7c9;"/>
+        <Button text="ROZPOCZNIJ SYMULACJĘ" onAction="#onStartClicked" prefWidth="200" prefHeight="40" style="-fx-font-weight: bold;"/>
     </VBox>
 </ScrollPane>
