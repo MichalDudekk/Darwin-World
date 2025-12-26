@@ -38,7 +38,7 @@ public class StartMenuController {
             Params params = getParams();
 
             System.out.println("--- Simulation configured ---");
-            System.out.printf("Map: %sx%s%n", params.MapWidth(), params.mapHeight());
+            System.out.printf("Map: %sx%s%n", params.mapWidth(), params.mapHeight());
             System.out.println("FOMO Mode: " + params.isFomo());
             System.out.println("Params Object: " + params);
 
@@ -76,7 +76,7 @@ public class StartMenuController {
     }
 
     private void updateGuiFromParams(Params params) {
-        mapWidthField.setText(String.valueOf(params.MapWidth()));
+        mapWidthField.setText(String.valueOf(params.mapWidth()));
         mapHeightField.setText(String.valueOf(params.mapHeight()));
         initialAnimalsNumField.setText(String.valueOf(params.initialAnimalsNum()));
         plantMinEnergyField.setText(String.valueOf(params.plantMinEnergy()));

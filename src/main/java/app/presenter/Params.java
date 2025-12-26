@@ -1,7 +1,7 @@
 package app.presenter;
 
 public record Params(
-        int MapWidth,
+        int mapWidth,
         int mapHeight,
         int initialPlantsNum,
         int plantMinEnergy,
