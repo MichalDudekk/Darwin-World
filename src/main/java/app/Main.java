@@ -1,7 +1,7 @@
 package app;
 
 public class Main {
-    public static void main() {
-        System.out.println("good night");
+    public static void main(String[] args) {
+        App.main(args);
     }
 }
