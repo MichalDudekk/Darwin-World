@@ -1,40 +1,43 @@
 package app.model;
 
 public enum MapDirection {
-    NORTH(0),
-    NORTH_EAST(1),
-    EAST(2),
-    SOUTH_EAST(3),
-    SOUTH(4),
-    SOUTH_WEST(5),
-    WEST(6),
-    NORTH_WEST(7);
+    NORTH(0, new Vector2d(0, 1)),
+    NORTH_EAST(1, new Vector2d(1, 1)),
+    EAST(2, new Vector2d(1, 0)),
+    SOUTH_EAST(3, new Vector2d(1, -1)),
+    SOUTH(4, new Vector2d(0, -1)),
+    SOUTH_WEST(5, new Vector2d(-1, -1)),
+    WEST(6, new Vector2d(-1, 0)),
+    NORTH_WEST(7, new Vector2d(-1, 1));
 
     private final int value;
+    private final Vector2d unitVector;
+    private static final MapDirection[] VALUES = values();
 
-    MapDirection(int value) {
+    MapDirection(int value, Vector2d unitVector) {
         this.value = value;
+        this.unitVector = unitVector;
     }
 
-    private MapDirection Rotation(int number) {
+    private MapDirection rotation(int number) {
         MapDirection[] directions = MapDirection.values();
         return directions[ (this.value + number) % directions.length ];
     }
 
     public MapDirection next() {
-        return Rotation(1);
+        return rotation(1);
     }
 
     public MapDirection previous() {
-        return Rotation(7);
+        return rotation(7);
     }
 
     public MapDirection opposite() {
-        return Rotation(4);
+        return rotation(4);
     }
 
-    public MapDirection Rotate(int gene) {
-        return Rotation(gene);
+    public MapDirection rotate(int gene) {
+        return rotation(gene);
     }
 
     public static MapDirection getRandom() {
@@ -43,15 +46,6 @@ public enum MapDirection {
     }
 
     public Vector2d toUnitVector() {
-        return switch (this) {
-            case NORTH -> new Vector2d(0,1);
-            case NORTH_EAST -> new Vector2d(1,1);
-            case EAST -> new Vector2d(1,0);
-            case SOUTH_EAST -> new Vector2d(1,-1);
-            case SOUTH -> new Vector2d(0,-1);
-            case SOUTH_WEST -> new Vector2d(-1,-1);
-            case WEST -> new Vector2d(-1,0);
-            case NORTH_WEST -> new Vector2d(-1,1);
-        };
+        return unitVector;
     }
 }

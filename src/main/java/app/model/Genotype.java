@@ -3,6 +3,9 @@ package app.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Genotype {
     private List<Integer> genes;
@@ -12,7 +15,7 @@ public class Genotype {
 
     public Genotype(List<Integer> genes) {
         this.genes = new ArrayList<>(genes);
-        activeGene = this.genes.get(currentIndex);
+        activeGene = this.genes.getFirst();
     }
 
     public int getActiveGene() {
@@ -25,60 +28,51 @@ public class Genotype {
     }
 
     public static Genotype crossover(Genotype gen1, Genotype gen2, int energy1, int energy2) {
-        List<Integer> genesStronger = energy1 > energy2 ? gen1.genes : gen2.genes;
-        List<Integer> genesWeaker = energy1 > energy2 ? gen2.genes : gen1.genes;
-        List<Integer> genesChild = new ArrayList<>();
+        boolean p1Stronger = energy1 >= energy2;
+        List<Integer> strongerGenes = p1Stronger ? gen1.genes : gen2.genes;
+        List<Integer> weakerGenes = p1Stronger ? gen2.genes : gen1.genes;
 
-        int energyStronger = Math.max(energy1, energy2);
+        int totalEnergy = energy1 + energy2;
+        double ratio = totalEnergy > 0 ? (double) Math.max(energy1, energy2) / totalEnergy : 0.5;
 
-        int length = genesStronger.size();
-        int combinedEnergy = energy1 + energy2;
-        double proportion = (double) energyStronger / combinedEnergy;
+        int length = strongerGenes.size();
+        int splitPoint = (int) (ratio * length);
 
-        String side = Math.random() >= 0.5 ? "left" : "right";
+        List<Integer> childGenes = new ArrayList<>();
 
-        if (side.equals("left")) {
-            int breakpoint = (int) (proportion * length);
+        boolean strongerOnLeft = new Random().nextBoolean();
 
-            for (int i=0;i<length;i++) {
-                if (i < breakpoint) {
-                    genesChild.add(genesStronger.get(i));
-                    continue;
-                }
-                genesChild.add(genesWeaker.get(i));
-            }
+        if (strongerOnLeft) {
+            // Silniejszy z lewej
+            childGenes.addAll(strongerGenes.subList(0, splitPoint));
+            childGenes.addAll(weakerGenes.subList(splitPoint, length));
         } else {
-            int breakpoint = length - (int) (proportion * length);
-
-            for (int i=0;i<length;i++) {
-                if (i < breakpoint) {
-                    genesChild.add(genesWeaker.get(i));
-                    continue;
-                }
-                genesChild.add(genesStronger.get(i));
-            }
+            // Silniejszy z prawej
+            childGenes.addAll(weakerGenes.subList(0, length - splitPoint));
+            childGenes.addAll(strongerGenes.subList(length - splitPoint, length));
         }
 
-        return new Genotype(genesChild);
+        return new Genotype(childGenes);
     }
 
     public void mutate(int minMutation, int maxMutation) {
-        int mutation = (int) (Math.random() * (maxMutation - minMutation + 1)) + minMutation;
+        Random random = new Random();
 
-        List<Integer> indexes = new ArrayList<>();
-        for (int i = 0; i < genes.size(); i++) {
-            indexes.add(i);
-        }
+        int mutationCount = random.nextInt(maxMutation - minMutation + 1) + minMutation;
 
+        List<Integer> indexes = IntStream.range(0, genes.size())
+                .boxed()
+                .collect(Collectors.toList());
         Collections.shuffle(indexes);
 
-        for (int i=0;i<Math.min(mutation,genes.size());i++) {
-            int indexToChange = indexes.get(i);
+        for (int i = 0; i < Math.min(mutationCount, genes.size()); i++) {
+            int index = indexes.get(i);
+            int currentGene = genes.get(index);
 
-            int currentGene = genes.get(indexToChange);
-            // Losuje nową wartość z pozostałych 7 możliwości
-            int newGene = (currentGene + 1 + (int)(Math.random() * (POSSIBLE_GENES_COUNT - 1))) % POSSIBLE_GENES_COUNT;
-            genes.set(indexToChange,newGene);
+            int randomStep = 1 + random.nextInt(POSSIBLE_GENES_COUNT - 1);
+            int newGene = (currentGene + randomStep) % POSSIBLE_GENES_COUNT;
+
+            genes.set(index, newGene);
         }
     }
 }

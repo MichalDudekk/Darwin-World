@@ -1,20 +1,21 @@
 package app.model;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 public class Animal implements Comparable<Animal>{
-    private final UUID id = UUID.randomUUID();;
+    private final UUID id = UUID.randomUUID();
     private int energy;
     private int age;
     private Vector2d position;
     private final Set<Animal> children = new HashSet<>();
     private MapDirection direction;
-    private Genotype genotype;
+    private final Genotype genotype;
     private int deathDate;
     private int eatenPlants;
-    MoveStrategy moveStrategy;
+    private MoveStrategy moveStrategy;
     private boolean isTracked = false;
 //    private boolean isInFrenzy = false;
     private boolean isDead = false;
@@ -32,6 +33,9 @@ public class Animal implements Comparable<Animal>{
 
     public void rotateByGenes() {
         direction = MapDirection.values()[genotype.getActiveGene()];
+    }
+
+    public void nextGene() {
         genotype.nextGene();
     }
 
@@ -71,8 +75,8 @@ public class Animal implements Comparable<Animal>{
         this.direction = direction;
     }
 
-    public void setIsDead(boolean b) {
-        isDead = b;
+    public void setIsDead(boolean idDead) {
+        this.isDead = isDead;
     }
 
     public int getAge() {
@@ -112,11 +116,6 @@ public class Animal implements Comparable<Animal>{
         return child;
     }
 
-//    // move strategy trzeba zmieniać
-//    public void setInFrenzy(boolean inFrenzy) {
-//        isInFrenzy = inFrenzy;
-//    }
-
     public int getDescendantsCount() {
         Set<Animal> allDescendants = new HashSet<>();
         collectDescendants(this, allDescendants);
@@ -132,20 +131,24 @@ public class Animal implements Comparable<Animal>{
         }
     }
 
+    public int getChildrenCount() {
+        return children.size();
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
     @Override
     public int compareTo(Animal o) {
-        int res = Integer.compare(this.energy, o.energy);
-        if (res != 0) return res;
-
-        res = Integer.compare(this.age, o.age);
-        if (res != 0) return res;
-
-        res = Integer.compare(this.getChildren().size(), o.getChildren().size());
-        if (res != 0) return res;
-
+        return Comparator.comparingInt(Animal::getEnergy)
+                .thenComparingInt(Animal::getAge)
+                .thenComparingInt(Animal::getChildrenCount)
+                .thenComparing(Animal::getId)
+                .compare(this, o);
         // UUID implementuje Comparable - UUID jest praktycznie losowe, więc można przyjąć to jako losowy wybór
         // przy użyciu Math.random() relacja przestała by być porządkiem (przechodniość)
         // e.g. ~(A>B ^ B>C => A>C)
-        return this.id.compareTo(o.id);
     }
 }
+

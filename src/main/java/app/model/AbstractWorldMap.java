@@ -13,7 +13,7 @@ public abstract class AbstractWorldMap implements WorldMap {
 
     protected Map<Vector2d, List<Animal>> fields;
     protected Map<Vector2d, Plant> plants;
-    protected List<Animal> animals = new LinkedList<>();
+    protected List<Animal> animals = new ArrayList<>();
 
     protected int daysElapsed = 0;
     protected List<MapChangeListener> listeners = new ArrayList<>();
@@ -28,13 +28,13 @@ public abstract class AbstractWorldMap implements WorldMap {
         listeners.add(listener);
     }
 
-    public void RemoveListener(MapChangeListener listener) {
+    public void removeListener(MapChangeListener listener) {
         listeners.remove(listener);
     }
 
     @Override
     public List<Plant> getPlants() {
-        return plants.values().stream().toList();
+        return List.copyOf(plants.values());
     }
 
     @Override

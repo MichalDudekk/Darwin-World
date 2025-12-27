@@ -30,6 +30,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
             Animal animal = iterator.next();
 
             animal.rotateByGenes();
+            animal.nextGene();
             Vector2d prevPosition = animal.getPosition();
             Vector2d desirableMove = animal.getDesirableMove(this);
             MoveResult res = validateMove(prevPosition,desirableMove,animal.getDirection());

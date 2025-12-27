@@ -56,10 +56,10 @@ class MapDirectionTest {
         MapDirection north = MapDirection.NORTH;
 
         // then
-        assertEquals(MapDirection.NORTH, north.Rotate(0));
-        assertEquals(MapDirection.SOUTH, north.Rotate(4));
-        assertEquals(MapDirection.WEST, north.Rotate(6));
-        assertEquals(MapDirection.NORTH_EAST, north.Rotate(1));
+        assertEquals(MapDirection.NORTH, north.rotate(0));
+        assertEquals(MapDirection.SOUTH, north.rotate(4));
+        assertEquals(MapDirection.WEST, north.rotate(6));
+        assertEquals(MapDirection.NORTH_EAST, north.rotate(1));
     }
 
     @Test
