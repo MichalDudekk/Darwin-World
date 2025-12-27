@@ -16,4 +16,5 @@ public interface WorldMap {
     public Map<Vector2d, List<Animal>> getFields();
     public List<Animal> getAnimalsInRadius(Vector2d center, int radius);
     public void addPlant(Vector2d position, Plant plant);
+    public void dayPassed();
 }

@@ -27,7 +27,7 @@ public class FomoMoveStrategy extends StandardMoveStrategy{
     }
 
     private Vector2d calculateCrowdCenter(List<Animal> crowd) {
-        int lenght = crowd.size();
+        int length = crowd.size();
         int sumX = 0;
         int sumY = 0;
 
@@ -37,6 +37,6 @@ public class FomoMoveStrategy extends StandardMoveStrategy{
             sumY += position.getY();
         }
 
-        return new Vector2d( (sumX/lenght), (sumY/lenght));
+        return new Vector2d( (sumX/length), (sumY/length));
     }
 }

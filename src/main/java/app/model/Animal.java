@@ -1,5 +1,6 @@
 package app.model;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -8,14 +9,14 @@ public class Animal implements Comparable<Animal>{
     private int energy;
     private int age;
     private Vector2d position;
-    private Set<Animal> children;
+    private final Set<Animal> children = new HashSet<>();
     private MapDirection direction;
     private Genotype genotype;
     private int deathDate;
     private int eatenPlants;
     MoveStrategy moveStrategy;
     private boolean isTracked = false;
-    private boolean isInFrenzy = false;
+//    private boolean isInFrenzy = false;
     private boolean isDead = false;
 
     public Animal(int energy, Vector2d position, MapDirection direction, Genotype genotype) {
@@ -46,8 +47,20 @@ public class Animal implements Comparable<Animal>{
         this.position = position;
     }
 
+    public void setDeathDate(int deathDate) {
+        this.deathDate = deathDate;
+    }
+
+    public void setMoveStrategy(MoveStrategy moveStrategy) {
+        this.moveStrategy = moveStrategy;
+    }
+
     public int getEnergy() {
         return energy;
+    }
+
+    public void setEnergy(int energy) {
+        this.energy = energy;
     }
 
     public MapDirection getDirection() {
@@ -56,6 +69,18 @@ public class Animal implements Comparable<Animal>{
 
     public void setDirection(MapDirection direction) {
         this.direction = direction;
+    }
+
+    public void setIsDead(boolean b) {
+        isDead = b;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 
     public Set<Animal> getChildren() {
@@ -80,38 +105,43 @@ public class Animal implements Comparable<Animal>{
         this.energy -= KONKRETNA_WARTOSC_Z_PARAMS;
         partner.energy -= KONKRETNA_WARTOSC_Z_PARAMS;
 
-        return new Animal(childEnergy,this.position,MapDirection.getRandom(),childGenotype);
+        Animal child = new Animal(childEnergy,this.position,MapDirection.getRandom(),childGenotype);
+        children.add(child);
+        partner.getChildren().add(child);
+
+        return child;
     }
 
-    // move strategy trzeba zmieniać
-    public void setInFrenzy(boolean inFrenzy) {
-        isInFrenzy = inFrenzy;
-    }
+//    // move strategy trzeba zmieniać
+//    public void setInFrenzy(boolean inFrenzy) {
+//        isInFrenzy = inFrenzy;
+//    }
 
-    // wymaga implementacji
     public int getDescendantsCount() {
-        return 1;
+        Set<Animal> allDescendants = new HashSet<>();
+        collectDescendants(this, allDescendants);
+        return allDescendants.size();
+    }
+
+    private void collectDescendants(Animal current, Set<Animal> accumulator) {
+        for (Animal child : current.getChildren()) {
+            // add() zwraca true jeśli elementu nie było wcześniej w zbiorze
+            if (accumulator.add(child)) {
+                collectDescendants(child, accumulator);
+            }
+        }
     }
 
     @Override
     public int compareTo(Animal o) {
-        if (this.energy > o.energy) {
-            return 1;
-        } else if (this.energy < o.energy) {
-            return -1;
-        }
+        int res = Integer.compare(this.energy, o.energy);
+        if (res != 0) return res;
 
-        if (this.age > o.age) {
-            return 1;
-        } else if (this.age < o.age) {
-            return -1;
-        }
+        res = Integer.compare(this.age, o.age);
+        if (res != 0) return res;
 
-        if (this.getDescendantsCount() > o.getDescendantsCount()) {
-            return 1;
-        } else if (this.getDescendantsCount() < o.getDescendantsCount()) {
-            return -1;
-        }
+        res = Integer.compare(this.getChildren().size(), o.getChildren().size());
+        if (res != 0) return res;
 
         // UUID implementuje Comparable - UUID jest praktycznie losowe, więc można przyjąć to jako losowy wybór
         // przy użyciu Math.random() relacja przestała by być porządkiem (przechodniość)

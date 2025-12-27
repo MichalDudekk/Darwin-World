@@ -11,7 +11,7 @@ public class Genotype {
     private static final int POSSIBLE_GENES_COUNT = 8;
 
     public Genotype(List<Integer> genes) {
-        this.genes = genes;
+        this.genes = new ArrayList<>(genes);
         activeGene = this.genes.get(currentIndex);
     }
 

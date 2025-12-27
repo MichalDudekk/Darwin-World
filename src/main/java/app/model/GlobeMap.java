@@ -16,6 +16,8 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
             Animal animal = iterator.next();
             if (animal.getIsDead()) {
                 iterator.remove();
+                animal.setIsDead(true);
+                animal.setDeathDate(daysElapsed);
                 fields.get(animal.getPosition()).remove(animal); // removing from fields too
             }
         }
@@ -50,28 +52,35 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
 
             residents.sort(Comparator.reverseOrder()); // sortowanie malejące
             residents.getFirst().eat(plants.get(v));
+            plants.remove(v);
         }
     }
 
     // do edita - wymaga danych z params
     @Override
     public void animalsReproduce() {
+        int MIN_MUTATION = 2;
+        int MAX_MUTATION = 4;
+        int MIN_ENERGY_TO_REPRODUCE = 10;
+
         Vector2d[] vectors = fields.keySet().toArray(new Vector2d[0]);
 
         for (Vector2d v : vectors) {
             List<Animal> residents = fields.get(v);
-            if (residents.size() <= 1) continue;
-
-            int MIN_MUTATION = 2;
-            int MAX_MUTATION = 4;
-
+            if (residents.size() <= 1)
+                continue;
             residents.sort(Comparator.reverseOrder()); // sortowanie malejące
+
+            if (residents.get(1).getEnergy() < MIN_ENERGY_TO_REPRODUCE)
+                continue;
+
             Animal child = residents.get(0).reproduce(residents.get(1));
             child.getGenotype().mutate(MIN_MUTATION,MAX_MUTATION);
             this.addAnimal(child);
         }
     }
 
+    @Override
     public void addPlant(Vector2d position, Plant plant) {
         if (plants.containsKey(position)) {
             throw new IllegalArgumentException("Position %s already has a plant".formatted(position));
@@ -119,9 +128,23 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
         }
     }
 
+    // do edita - wymaga danych z params
+    @Override
+    public void dayPassed() {
+        int ENERGY_LOSS = 1;
+
+        daysElapsed++;
+        Iterator<Animal> iterator = animals.iterator();
+        while (iterator.hasNext()) {
+            Animal animal = iterator.next();
+            animal.setEnergy(animal.getEnergy() - ENERGY_LOSS);
+            animal.setAge(animal.getAge() + 1);
+        }
+    }
+
     @Override
     public List<Animal> getAnimalsInRadius(Vector2d center, int radius) {
-        List<Animal> res = new LinkedList<>();
+        List<Animal> res = new ArrayList<>();
 
         Iterator<Animal> iterator = animals.iterator();
         while (iterator.hasNext()) {
