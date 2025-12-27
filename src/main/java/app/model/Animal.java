@@ -75,7 +75,7 @@ public class Animal implements Comparable<Animal>{
         this.direction = direction;
     }
 
-    public void setIsDead(boolean idDead) {
+    public void setIsDead(boolean isDead) {
         this.isDead = isDead;
     }
 

@@ -25,10 +25,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
 
     @Override
     public void moveAnimals() {
-        Iterator<Animal> iterator = animals.iterator();
-        while (iterator.hasNext()) {
-            Animal animal = iterator.next();
-
+        for (Animal animal : animals) {
             animal.rotateByGenes();
             animal.nextGene();
             Vector2d prevPosition = animal.getPosition();
@@ -135,9 +132,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
         int ENERGY_LOSS = 1;
 
         daysElapsed++;
-        Iterator<Animal> iterator = animals.iterator();
-        while (iterator.hasNext()) {
-            Animal animal = iterator.next();
+        for (Animal animal : animals) {
             animal.setEnergy(animal.getEnergy() - ENERGY_LOSS);
             animal.setAge(animal.getAge() + 1);
         }
@@ -147,9 +142,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
     public List<Animal> getAnimalsInRadius(Vector2d center, int radius) {
         List<Animal> res = new ArrayList<>();
 
-        Iterator<Animal> iterator = animals.iterator();
-        while (iterator.hasNext()) {
-            Animal animal = iterator.next();
+        for (Animal animal : animals) {
             double distance = center.calculateDistance(animal.getPosition());
 
             if (distance <= radius) {
@@ -164,26 +157,14 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
         int intendedX = intendedMove.getX();
         int intendedY = intendedMove.getY();
 
-        if (0 <= intendedX && intendedX < width && 0 <= intendedY && intendedY < height) {
+        if (0 <= intendedX && intendedX < width && 0 <= intendedY && intendedY < height)
             return new MoveResult(intendedMove,orientation);
-        }
 
-        int newX = intendedX;
-        int newY = intendedY;
+        int newX = intendedX < 0 ? width-1 : intendedX >= width ? 0 : intendedX;
+        int newY = intendedY < 0 ? 1 : intendedY >= height ? height-1 : intendedY;
 
-        if (intendedX < 0) {
-            newX = width-1;
-        } else if (intendedX >= width) {
-            newX = 0;
-        }
-
-        if (intendedY < 0) {
-            newY = 1;
+        if (newY != intendedY)
             orientation = orientation.opposite();
-        } else if (intendedY >= height) {
-            newY = height-1;
-            orientation = orientation.opposite();
-        }
 
         return new MoveResult(new Vector2d(newX,newY),orientation);
     }
