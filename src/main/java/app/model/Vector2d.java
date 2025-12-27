@@ -38,6 +38,31 @@ public class Vector2d {
         return new Vector2d( this.x - other.x , this.y - other.y );
     }
 
+    public double calculateDistance(Vector2d o) {
+        int dx = x - o.getX();
+        int dy = y - o.getY();
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    public Vector2d followTarget(Vector2d target) {
+        int resX = 0;
+        int resY = 0;
+
+        if (x < target.getX()) {
+            resX = 1;
+        } else if (x > target.getX()) {
+            resX = -1;
+        }
+
+        if (y < target.getY()) {
+            resY = 1;
+        } else if (y > target.getY()) {
+            resY = -1;
+        }
+
+        return new Vector2d(resX,resY);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(x, y);
