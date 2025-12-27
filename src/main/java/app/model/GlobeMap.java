@@ -72,10 +72,51 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
         }
     }
 
+    public void addPlant(Vector2d position, Plant plant) {
+        if (plants.containsKey(position)) {
+            throw new IllegalArgumentException("Position %s already has a plant".formatted(position));
+        }
+        plants.put(position,plant);
+    }
+
     // wymaga danych z params do edita
     @Override
     public void growPlants() {
-        //
+        int DAILY_PLANT_GROWTH = 10;
+        int PLANT_ENERGY_VALUE = 5;
+
+        List<Vector2d> jungleFree = new ArrayList<>();
+        List<Vector2d> stepFree = new ArrayList<>();
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                Vector2d v = new Vector2d(x, y);
+                if (plants.containsKey(v)) continue;
+
+                if (y >= jungleBottomY && y <= jungleTopY) {
+                    jungleFree.add(v);
+                } else {
+                    stepFree.add(v);
+                }
+            }
+        }
+
+        Collections.shuffle(jungleFree);
+        Collections.shuffle(stepFree);
+
+        // Sadzenie w dżungli (80% z DAILY_PLANT_GROWTH)
+        int toGrowInJungle = DAILY_PLANT_GROWTH * 8 / 10;
+        int grownInJungle = 0;
+        for (int i = 0; i < Math.min(toGrowInJungle, jungleFree.size()); i++) {
+            addPlant(jungleFree.get(i), new Plant(PLANT_ENERGY_VALUE));
+            grownInJungle++;
+        }
+
+        // Reszta na stepie
+        int toGrowOnStep = DAILY_PLANT_GROWTH - grownInJungle;
+        for (int i = 0; i < Math.min(toGrowOnStep, stepFree.size()); i++) {
+            addPlant(stepFree.get(i), new Plant(PLANT_ENERGY_VALUE));
+        }
     }
 
     @Override
