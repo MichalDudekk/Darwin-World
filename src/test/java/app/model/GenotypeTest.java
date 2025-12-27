@@ -49,7 +49,7 @@ class GenotypeTest {
         Genotype child = Genotype.crossover(parent1, parent2, 50, 50);
 
         // Mutujemy dziecko (100% szansy) - rodzice powinni zostać nietknięci
-        child.mutate(1.0, 1);
+        child.mutate(1, 1);
 
         // then
         assertEquals(0, parent1.getActiveGene());
@@ -67,7 +67,7 @@ class GenotypeTest {
         Genotype genotype = new Genotype(new ArrayList<>(List.of(0, 0, 0, 0, 0)));
 
         // 100% szansy na mutację
-        genotype.mutate(1.0, 3);
+        genotype.mutate(1, 3);
 
         int changedGenes = 0;
         for (int i = 0; i < 5; i++) {
@@ -85,7 +85,7 @@ class GenotypeTest {
         Genotype genotype = new Genotype(new ArrayList<>(List.of(5, 5, 5)));
 
         // 0% szansy na mutację
-        genotype.mutate(0.0, 3);
+        genotype.mutate(0, 0);
 
         // then
         assertEquals(5, genotype.getActiveGene());

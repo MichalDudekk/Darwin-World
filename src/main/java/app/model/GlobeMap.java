@@ -53,6 +53,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
         }
     }
 
+    // do edita - wymaga danych z params
     @Override
     public void animalsReproduce() {
         Vector2d[] vectors = fields.keySet().toArray(new Vector2d[0]);
@@ -61,8 +62,12 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
             List<Animal> residents = fields.get(v);
             if (residents.size() <= 1) continue;
 
+            int MIN_MUTATION = 2;
+            int MAX_MUTATION = 4;
+
             residents.sort(Comparator.reverseOrder()); // sortowanie malejące
             Animal child = residents.get(0).reproduce(residents.get(1));
+            child.getGenotype().mutate(MIN_MUTATION,MAX_MUTATION);
             this.addAnimal(child);
         }
     }

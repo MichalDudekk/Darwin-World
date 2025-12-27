@@ -1,6 +1,7 @@
 package app.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Genotype {
@@ -30,26 +31,26 @@ public class Genotype {
 
         int energyStronger = Math.max(energy1, energy2);
 
-        int lenght = genesStronger.size();
+        int length = genesStronger.size();
         int combinedEnergy = energy1 + energy2;
         double proportion = (double) energyStronger / combinedEnergy;
 
         String side = Math.random() >= 0.5 ? "left" : "right";
 
         if (side.equals("left")) {
-            int breakpoint = (int) (proportion * lenght);
+            int breakpoint = (int) (proportion * length);
 
-            for (int i=0;i<lenght;i++) {
-                if (i <= breakpoint) {
+            for (int i=0;i<length;i++) {
+                if (i < breakpoint) {
                     genesChild.add(genesStronger.get(i));
                     continue;
                 }
                 genesChild.add(genesWeaker.get(i));
             }
         } else {
-            int breakpoint = lenght - (int) (proportion * lenght);
+            int breakpoint = length - (int) (proportion * length);
 
-            for (int i=0;i<lenght;i++) {
+            for (int i=0;i<length;i++) {
                 if (i < breakpoint) {
                     genesChild.add(genesWeaker.get(i));
                     continue;
@@ -61,27 +62,23 @@ public class Genotype {
         return new Genotype(genesChild);
     }
 
-    /**
-     * Mutates the genotype based on a mutation probability and a maximum change range.
-     *
-     * @param mutationChance The probability that a SINGLE gene will undergo mutation.
-     * Should be a double in the range [0.0; 1.0].
-     * @param maxMutationChange The maximum displacement (delta) for a single gene mutation.
-     * The new gene value is randomly selected from the range [prev - max, prev + max],
-     * excluding the current value to ensure an actual change occurs.
-     * * Example: if maxMutationChange = 2 and prevGene = 5,
-     * the newGene will be one of {3, 4, 6, 7} (considering wrap-around for 8 directions).
-     */
-    public void mutate(double mutationChance, int maxMutationChange) {
+    public void mutate(int minMutation, int maxMutation) {
+        int mutation = (int) (Math.random() * (maxMutation - minMutation + 1)) + minMutation;
+
+        List<Integer> indexes = new ArrayList<>();
         for (int i = 0; i < genes.size(); i++) {
-            if (Math.random() > mutationChance) continue;
+            indexes.add(i);
+        }
 
-            int offset = (int) (Math.random() * maxMutationChange) + 1;
-            int sign = Math.random() > 0.5 ? -1 : 1;
+        Collections.shuffle(indexes);
 
-            int newGene = genes.get(i);
-            newGene = (POSSIBLE_GENES_COUNT + newGene + offset * sign) % POSSIBLE_GENES_COUNT;
-            genes.set(i,newGene);
+        for (int i=0;i<Math.min(mutation,genes.size());i++) {
+            int indexToChange = indexes.get(i);
+
+            int currentGene = genes.get(indexToChange);
+            // Losuje nową wartość z pozostałych 7 możliwości
+            int newGene = (currentGene + 1 + (int)(Math.random() * (POSSIBLE_GENES_COUNT - 1))) % POSSIBLE_GENES_COUNT;
+            genes.set(indexToChange,newGene);
         }
     }
 }

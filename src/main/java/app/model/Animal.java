@@ -62,6 +62,10 @@ public class Animal implements Comparable<Animal>{
         return children;
     }
 
+    public Genotype getGenotype() {
+        return genotype;
+    }
+
     public void eat(Plant plant) {
         energy += plant.energyValue();
         eatenPlants++;
