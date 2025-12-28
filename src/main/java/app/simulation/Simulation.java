@@ -91,7 +91,7 @@ public class Simulation implements Runnable {
             notifyListeners();
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 break;
             }

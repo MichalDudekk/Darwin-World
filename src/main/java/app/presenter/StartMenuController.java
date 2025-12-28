@@ -77,6 +77,7 @@ public class StartMenuController {
             simulationStage.show();
 
             presenter.setSimulation(simulation);
+            presenter.setConfig(config);
 
             simulationEngine.runAsync(simulation);
 
