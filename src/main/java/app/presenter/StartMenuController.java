@@ -3,10 +3,17 @@ package app.presenter;
 import app.shared.Config;
 import app.simulation.ConfigurationManager;
 import app.simulation.Simulation;
+import app.simulation.SimulationEngine;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+
+import java.io.IOException;
 
 public class StartMenuController {
     @FXML private TextField configNameField;
@@ -32,6 +39,7 @@ public class StartMenuController {
 
     @FXML private Label errorLabel;
 
+    private final SimulationEngine simulationEngine = new SimulationEngine();
     private ConfigurationManager configManager;
 
     @FXML
@@ -44,17 +52,38 @@ public class StartMenuController {
             System.out.println("FOMO Mode: " + config.isFomo());
             System.out.println("Params Object: " + config);
 
-            System.out.println(config);
-
-            Simulation simulation = new Simulation(config);
-            Thread simulationThread = new Thread(simulation);
-            simulationThread.start();
+            createNewSimulation(config);
 
         } catch (NumberFormatException e) {
             errorLabel.setText("Błąd: Wszystkie pola liczbowe muszą być liczbami całkowitymi!");
         } catch (IllegalArgumentException e) {
             errorLabel.setText("Błąd walidacji: " + e.getMessage());
         }
+    }
+
+    private void createNewSimulation(Config config) {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/SimulationView.fxml"));
+
+        try {
+            BorderPane root = fxmlLoader.load();
+
+            SimulationController presenter = fxmlLoader.getController();
+
+            Simulation simulation = new Simulation(config);
+
+            Stage simulationStage = new Stage();
+            simulationStage.setTitle("Symulacja ID: " + simulation.getId());
+            simulationStage.setScene(new Scene(root));
+            simulationStage.show();
+
+            presenter.setSimulation(simulation);
+
+            simulationEngine.runAsync(simulation);
+
+        } catch (IOException e) {
+            errorLabel.setText("Błąd podczas tworzenia symualcji: " + e.getMessage());
+        }
+
     }
 
     @FXML

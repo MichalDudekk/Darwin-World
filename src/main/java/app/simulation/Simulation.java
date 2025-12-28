@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.UUID;
 
 public class Simulation implements Runnable {
+    private final UUID id = new UUID(5, 10);
     private final Config config;
     private final AbstractWorldMap map;
-    private final UUID id = new UUID(10, 10);
     private final List<SimulationState> history = new ArrayList<>();
 //    private final StatisticsLogger statisticsLogger;
+    private final List<MapChangeListener> listeners = new ArrayList<>();
 
     private boolean isPaused;
 
@@ -21,8 +22,26 @@ public class Simulation implements Runnable {
         this.map = new GlobeMap(config, generateAnimals());
     }
 
+    private void notifyListeners() {
+        for (MapChangeListener listener : listeners) {
+            listener.onMapChanged(map, "Dzień zakończony");
+        }
+    }
+
+    public void addListener(MapChangeListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(MapChangeListener listener) {
+        listeners.remove(listener);
+    }
+
     public AbstractWorldMap getMap() {
         return map;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     private List<Animal> generateAnimals() {
@@ -68,6 +87,8 @@ public class Simulation implements Runnable {
             map.animalsReproduce();
             map.growPlants();
             map.dayPassed();
+
+            notifyListeners();
 
             try {
                 Thread.sleep(1000);
