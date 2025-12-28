@@ -101,7 +101,6 @@ public class Animal implements Comparable<Animal>{
         eatenPlants++;
     }
 
-    // zależy od Paramsów - wymaga zmian
     public Animal reproduce(Animal partner, int energyLoss) {
         Genotype childGenotype = Genotype.crossover(this.genotype,partner.genotype,this.energy, partner.energy);
 
@@ -109,8 +108,11 @@ public class Animal implements Comparable<Animal>{
         this.energy -= energyLoss;
         partner.energy -= energyLoss;
 
-        Animal child = new Animal(childEnergy,this.position,
-                MapDirection.getRandom(),childGenotype,moveStrategy);
+        Animal child = new Animal(childEnergy,
+                this.position,
+                MapDirection.getRandom(),
+                childGenotype,
+                moveStrategy);
         children.add(child);
         partner.getChildren().add(child);
 

@@ -54,6 +54,16 @@ public class SimulationController implements MapChangeListener {
         gc.setFill(Color.LIMEGREEN);
         gc.fillRect(0, 0, width, height);
 
+        for (Vector2d plantPostion : map.getPlants().keySet()) {
+            int x = plantPostion.getX();
+            int y = plantPostion.getY();
+
+            gc.setFill(Color.FORESTGREEN);
+
+            // Rysowanie samego zwierzaka
+            gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+        }
+
         for (Animal animal : map.getAnimals()) {
             int x = animal.getPosition().getX();
             int y = animal.getPosition().getY();
@@ -61,16 +71,6 @@ public class SimulationController implements MapChangeListener {
 
             double hue = (energy / 100.0) * 240.0;
             gc.setFill(Color.hsb(hue, 1.0, 1.0));
-
-            // Rysowanie samego zwierzaka
-            gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-        }
-
-        for (Vector2d plantPostion : map.getPlants().keySet()) {
-            int x = plantPostion.getX();
-            int y = plantPostion.getY();
-
-            gc.setFill(Color.FORESTGREEN);
 
             // Rysowanie samego zwierzaka
             gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);

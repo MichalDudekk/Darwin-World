@@ -3,9 +3,8 @@ package app.simulation;
 import app.model.*;
 import app.shared.Config;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Simulation implements Runnable {
     private final UUID id = new UUID(5, 10);
@@ -15,7 +14,8 @@ public class Simulation implements Runnable {
 //    private final StatisticsLogger statisticsLogger;
     private final List<MapChangeListener> listeners = new ArrayList<>();
 
-    private boolean isPaused;
+    private volatile boolean isRunning = true;
+    private volatile boolean isPaused;
 
     public Simulation(Config config) {
         this.config = config;
@@ -46,20 +46,25 @@ public class Simulation implements Runnable {
 
     private List<Animal> generateAnimals() {
         List<Animal> animals = new ArrayList<>();
+
         MoveStrategy moveStrategy = config.isFomo() ?
                 new FomoMoveStrategy(config.fomoRadius(), config.fomoCrowdSize()) :
                 new StandardMoveStrategy();
 
         for(int i = 0; i < config.initialAnimalsNum(); i++) {
-            // TODO: Trzeba dodac initial animal energy
-            // TODO: Trzeba dodac losową pozycje
+            List<Integer> animalGenoms = new Random()
+                    .ints(config.genomLength(), 0, 7 + 1)
+                    .boxed()
+                    .toList();
+
             Animal animal = new Animal(
-                    10,
-                    new Vector2d(4, 4),
+                    config.animalStartEnergy(),
+                    Vector2d.getRandom(0, config.mapWidth() - 1, 0, config.mapHeight() - 1),
                     MapDirection.getRandom(),
-                    new Genotype(List.of(0,0,0)),
+                    new Genotype(animalGenoms),
                     moveStrategy
             );
+
             animals.add(animal);
         }
 
@@ -98,5 +103,18 @@ public class Simulation implements Runnable {
         }
     }
 
+    public synchronized void pause() {
+        isPaused = true;
+    }
+
+    public synchronized void resume() {
+        isPaused = false;
+        notifyAll();
+    }
+
+    public void end() {
+        isRunning = false;
+        resume();
+    }
 
 }

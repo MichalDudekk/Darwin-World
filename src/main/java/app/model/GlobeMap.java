@@ -8,7 +8,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator {
     public GlobeMap(Config configuration, List<Animal> animals) {
         config = configuration;
         jungleBottomY = (int) (config.mapHeight() * 0.4);
-        jungleTopY = (int) (config.mapWidth() * 0.6);
+        jungleTopY = (int) (config.mapHeight() * 0.6);
 
         this.fields = new HashMap<>();
 
@@ -50,7 +50,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator {
         if (0 <= intendedX && intendedX < config.mapWidth() && 0 <= intendedY && intendedY < config.mapHeight())
             return new MoveResult(intendedMove,orientation);
 
-        int newX = intendedX < 0 ? config.mapWidth() - 1 : intendedX >= config.mapHeight() ? 0 : intendedX;
+        int newX = intendedX < 0 ? config.mapWidth() - 1 : intendedX >= config.mapWidth() ? 0 : intendedX;
         int newY = intendedY < 0 ? 0 : intendedY >= config.mapHeight() ? config.mapHeight() - 1 : intendedY;
 
         if (newY != intendedY)

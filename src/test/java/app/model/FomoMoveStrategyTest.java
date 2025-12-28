@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class FomoMoveStrategyTest {
     private GlobeMap map;
     private MoveStrategy fomoStrategy;
-    private Config config = new Config();
 
     private final int RADIUS = 2;
     private final int MIN_CROWD = 3;

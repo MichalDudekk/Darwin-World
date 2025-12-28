@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 
@@ -27,6 +28,7 @@ public class StartMenuController {
     @FXML private TextField dailyPlantGrowthField;
     @FXML private TextField initialAnimalsNumField;
     @FXML private TextField animalEnergyLossField;
+    @FXML private TextField animalStartEnergyField;
     @FXML private TextField energyNeededToReproduceField;
     @FXML private TextField energyUsedToReproduceField;
     @FXML private TextField minMutationsField;
@@ -54,6 +56,8 @@ public class StartMenuController {
 
             createNewSimulation(config);
 
+            // TODO: Po odpaleniu kilka razy symulacji się sypie
+
         } catch (NumberFormatException e) {
             errorLabel.setText("Błąd: Wszystkie pola liczbowe muszą być liczbami całkowitymi!");
         } catch (IllegalArgumentException e) {
@@ -80,6 +84,10 @@ public class StartMenuController {
             presenter.setConfig(config);
 
             simulationEngine.runAsync(simulation);
+
+            simulationStage.setOnCloseRequest((WindowEvent event) -> {
+                simulation.end();
+            });
 
         } catch (IOException e) {
             errorLabel.setText("Błąd podczas tworzenia symualcji: " + e.getMessage());
@@ -148,6 +156,7 @@ public class StartMenuController {
                 getInt(dailyPlantGrowthField),
                 getInt(initialAnimalsNumField),
                 getInt(animalEnergyLossField),
+                getInt(animalStartEnergyField),
                 getInt(energyNeededToReproduceField),
                 getInt(energyUsedToReproduceField),
                 getInt(minMutationsField),

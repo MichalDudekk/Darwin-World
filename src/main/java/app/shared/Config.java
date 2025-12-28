@@ -9,6 +9,7 @@ public record Config(
         int dailyPlantGrowth,
         int initialAnimalsNum,
         int animalEnergyLoss,
+        int animalStartEnergy,
         int energyNeededToReproduce,
         int energyUsedToReproduce,
         int minMutations,

@@ -3,6 +3,7 @@ package app.model;
 import app.shared.Config;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class AbstractWorldMap implements WorldMap {
     protected Config config;
@@ -133,23 +134,30 @@ public abstract class AbstractWorldMap implements WorldMap {
         Collections.shuffle(jungleFree);
         Collections.shuffle(stepFree);
 
-        // TODO: Dodać do constructora plant min i max wartości
         // Sadzenie w dżungli (80% z config.dailyPlantGrowth())
+        // TODO: Do przejrzenia bo chyba się powtarza kod
         int toGrowInJungle = config.dailyPlantGrowth() * 8 / 10;
         int grownInJungle = 0;
         for (int i = 0; i < Math.min(toGrowInJungle, jungleFree.size()); i++) {
-            addPlant(jungleFree.get(i), new Plant(config.plantMaxEnergy()));
+            Plant plant = new Plant(ThreadLocalRandom.current().nextInt(
+                    config.plantMinEnergy(), config.plantMaxEnergy() + 1)
+            );
+
+            addPlant(jungleFree.get(i), plant);
             grownInJungle++;
         }
 
         // Reszta na stepie
         int toGrowOnStep = config.dailyPlantGrowth() - grownInJungle;
         for (int i = 0; i < Math.min(toGrowOnStep, stepFree.size()); i++) {
-            addPlant(stepFree.get(i), new Plant(config.plantMaxEnergy()));
+            Plant plant = new Plant(ThreadLocalRandom.current().nextInt(
+                    config.plantMinEnergy(), config.plantMaxEnergy() + 1)
+            );
+
+            addPlant(stepFree.get(i), plant);
         }
     }
 
-    // do edita - wymaga danych z params
     @Override
     public void dayPassed() {
         mapChanged("%s day passed".formatted(daysElapsed));
