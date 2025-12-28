@@ -1,11 +1,11 @@
 package app.model;
 
-import app.shared.Params;
+import app.shared.Config;
 
 import java.util.*;
 
 public class GlobeMap extends AbstractWorldMap implements MoveValidator {
-    public GlobeMap(Params configuration, List<Animal> animals) {
+    public GlobeMap(Config configuration, List<Animal> animals) {
         config = configuration;
         jungleBottomY = (int) (config.mapHeight() * 0.4);
         jungleTopY = (int) (config.mapWidth() * 0.6);

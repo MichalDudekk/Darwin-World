@@ -1,11 +1,11 @@
 package app.model;
 
-import app.shared.Params;
+import app.shared.Config;
 
 import java.util.*;
 
 public abstract class AbstractWorldMap implements WorldMap {
-    protected Params config;
+    protected Config config;
 
     protected int jungleBottomY;
     protected int jungleTopY;

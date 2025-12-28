@@ -1,14 +1,14 @@
 package app.simulation;
 
 import app.model.*;
-import app.shared.Params;
+import app.shared.Config;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class Simulation implements Runnable {
-    private final Params config;
+    private final Config config;
     private final AbstractWorldMap map;
     private final UUID id = new UUID(10, 10);
     private final List<SimulationState> history = new ArrayList<>();
@@ -16,7 +16,7 @@ public class Simulation implements Runnable {
 
     private boolean isPaused;
 
-    public Simulation(Params config) {
+    public Simulation(Config config) {
         this.config = config;
         this.map = new GlobeMap(config, generateAnimals());
     }

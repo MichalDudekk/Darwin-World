@@ -1,6 +1,6 @@
 package app.model;
 
-import app.shared.Params;
+import app.shared.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FomoMoveStrategyTest {
     private GlobeMap map;
     private MoveStrategy fomoStrategy;
-    private Params config = new Params();
+    private Config config = new Config();
 
     private final int RADIUS = 2;
     private final int MIN_CROWD = 3;

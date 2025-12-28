@@ -1,6 +1,6 @@
 package app.shared;
 
-public record Params(
+public record Config(
         int mapWidth,
         int mapHeight,
         int initialPlantsNum,

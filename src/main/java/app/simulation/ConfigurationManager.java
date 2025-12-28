@@ -1,6 +1,6 @@
 package app.simulation;
 
-import app.shared.Params;
+import app.shared.Config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -36,7 +36,7 @@ public class ConfigurationManager {
         }
     }
 
-    public void saveConfig(Params config, String filename) {
+    public void saveConfig(Config config, String filename) {
         createConfigFolder();
 
         if (!filename.endsWith(".json")) {
@@ -55,7 +55,7 @@ public class ConfigurationManager {
         }
     }
 
-    public Params loadConfig(String filename) {
+    public Config loadConfig(String filename) {
         if (!filename.endsWith(".json")) {
             filename += ".json";
         }
@@ -63,7 +63,7 @@ public class ConfigurationManager {
         String fullPath = folderPath + "/" + filename;
 
         try (FileReader reader = new FileReader(fullPath)) {
-            Params read = gson.fromJson(reader, Params.class);
+            Config read = gson.fromJson(reader, Config.class);
 
             infoField.setTextFill(Color.GREEN);
             infoField.setText("Wczytano konfiguracje z: %s".formatted(fullPath));

@@ -1,7 +1,6 @@
 package app.presenter;
 
-import app.model.ConsoleLogListener;
-import app.shared.Params;
+import app.shared.Config;
 import app.simulation.ConfigurationManager;
 import app.simulation.Simulation;
 import javafx.fxml.FXML;
@@ -38,16 +37,16 @@ public class StartMenuController {
     @FXML
     private void onStartClicked() {
         try {
-            Params params = getParams();
+            Config config = getConfig();
 
             System.out.println("--- Simulation configured ---");
-            System.out.printf("Map: %sx%s%n", params.mapWidth(), params.mapHeight());
-            System.out.println("FOMO Mode: " + params.isFomo());
-            System.out.println("Params Object: " + params);
+            System.out.printf("Map: %sx%s%n", config.mapWidth(), config.mapHeight());
+            System.out.println("FOMO Mode: " + config.isFomo());
+            System.out.println("Params Object: " + config);
 
-            System.out.println(params);
+            System.out.println(config);
 
-            Simulation simulation = new Simulation(params);
+            Simulation simulation = new Simulation(config);
             Thread simulationThread = new Thread(simulation);
             simulationThread.start();
 
@@ -66,8 +65,8 @@ public class StartMenuController {
     @FXML
     private void onSaveConfigClicked() {
         try {
-            Params currentParams = getParams();
-            configManager.saveConfig(currentParams, configNameField.getText());
+            Config currentConfig = getConfig();
+            configManager.saveConfig(currentConfig, configNameField.getText());
         } catch (Exception e) {
             errorLabel.setText("Błąd zapisu %s%n".formatted(e.getMessage()));
         }
@@ -75,30 +74,30 @@ public class StartMenuController {
 
     @FXML
     private void onLoadConfigClicked() {
-        Params loadedParams = configManager.loadConfig(configNameField.getText());
+        Config loadedConfig = configManager.loadConfig(configNameField.getText());
 
-        if (loadedParams != null) {
-            updateGuiFromParams(loadedParams);
+        if (loadedConfig != null) {
+            updateGuiFromParams(loadedConfig);
         }
     }
 
-    private void updateGuiFromParams(Params params) {
-        mapWidthField.setText(String.valueOf(params.mapWidth()));
-        mapHeightField.setText(String.valueOf(params.mapHeight()));
-        initialAnimalsNumField.setText(String.valueOf(params.initialAnimalsNum()));
-        plantMinEnergyField.setText(String.valueOf(params.plantMinEnergy()));
-        plantMaxEnergyField.setText(String.valueOf(params.plantMaxEnergy()));
-        dailyPlantGrowthField.setText(String.valueOf(params.dailyPlantGrowth()));
-        initialAnimalsNumField.setText(String.valueOf(params.initialAnimalsNum()));
-        animalEnergyLossField.setText(String.valueOf(params.animalEnergyLoss()));
-        energyNeededToReproduceField.setText(String.valueOf(params.energyNeededToReproduce()));
-        energyUsedToReproduceField.setText(String.valueOf(params.energyUsedToReproduce()));
-        minMutationsField.setText(String.valueOf(params.minMutations()));
-        maxMutationsField.setText(String.valueOf(params.maxMutations()));
-        genomeLengthField.setText(String.valueOf(params.genomLength()));
-        isFomoCheckBox.setSelected(params.isFomo());
-        fomoRadiusField.setText(String.valueOf(params.fomoRadius()));
-        fomoCrowdSizeField.setText(String.valueOf(params.fomoCrowdSize()));
+    private void updateGuiFromParams(Config config) {
+        mapWidthField.setText(String.valueOf(config.mapWidth()));
+        mapHeightField.setText(String.valueOf(config.mapHeight()));
+        initialAnimalsNumField.setText(String.valueOf(config.initialAnimalsNum()));
+        plantMinEnergyField.setText(String.valueOf(config.plantMinEnergy()));
+        plantMaxEnergyField.setText(String.valueOf(config.plantMaxEnergy()));
+        dailyPlantGrowthField.setText(String.valueOf(config.dailyPlantGrowth()));
+        initialAnimalsNumField.setText(String.valueOf(config.initialAnimalsNum()));
+        animalEnergyLossField.setText(String.valueOf(config.animalEnergyLoss()));
+        energyNeededToReproduceField.setText(String.valueOf(config.energyNeededToReproduce()));
+        energyUsedToReproduceField.setText(String.valueOf(config.energyUsedToReproduce()));
+        minMutationsField.setText(String.valueOf(config.minMutations()));
+        maxMutationsField.setText(String.valueOf(config.maxMutations()));
+        genomeLengthField.setText(String.valueOf(config.genomLength()));
+        isFomoCheckBox.setSelected(config.isFomo());
+        fomoRadiusField.setText(String.valueOf(config.fomoRadius()));
+        fomoCrowdSizeField.setText(String.valueOf(config.fomoCrowdSize()));
     }
 
     private int getInt(TextField field) {
@@ -109,8 +108,8 @@ public class StartMenuController {
         return Integer.parseInt(text.trim());
     }
 
-    private Params getParams() {
-        return new Params(
+    private Config getConfig() {
+        return new Config(
                 getInt(mapWidthField),
                 getInt(mapHeightField),
                 getInt(initialPlantsNumField),
