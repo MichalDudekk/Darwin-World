@@ -3,10 +3,31 @@ package app.model;
 import java.util.*;
 
 public class GlobeMap extends AbstractWorldMap implements MoveValidator{
+
+    public GlobeMap(int width,int height, List<Animal> animals) {
+        this.width = width;
+        this.height = height;
+        jungleBottomY = (int) (height * 0.4);
+        jungleTopY = (int) (height * 0.6);
+
+        this.fields = new HashMap<>();
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                fields.put(new Vector2d(x, y), new ArrayList<>());
+            }
+        }
+
+        for (Animal animal : animals) {
+            addAnimal(animal);
+        }
+    }
+
     @Override
     public void addAnimal(Animal animal) {
         animals.add(animal);
         fields.get(animal.getPosition()).add(animal);
+        MapChanged("New animal on tile %s".formatted(animal.getPosition()));
     }
 
     @Override
@@ -14,11 +35,12 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
         Iterator<Animal> iterator = animals.iterator();
         while (iterator.hasNext()) {
             Animal animal = iterator.next();
-            if (animal.getIsDead()) {
+            if (animal.getEnergy() <= 0) {
                 iterator.remove();
                 animal.setIsDead(true);
                 animal.setDeathDate(daysElapsed);
                 fields.get(animal.getPosition()).remove(animal); // removing from fields too
+                MapChanged("Animal died on tile %s".formatted(animal.getPosition()));
             }
         }
     }
@@ -37,6 +59,8 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
 
             fields.get(prevPosition).remove(animal);
             fields.get(res.position()).add(animal);
+
+            MapChanged("Animal moved from %s to %s".formatted(prevPosition,animal.getPosition()));
         }
     }
 
@@ -51,6 +75,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
             residents.sort(Comparator.reverseOrder()); // sortowanie malejące
             residents.getFirst().eat(plants.get(v));
             plants.remove(v);
+            MapChanged("Plant eaten on tile %s".formatted(v));
         }
     }
 
@@ -75,6 +100,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
             Animal child = residents.get(0).reproduce(residents.get(1));
             child.getGenotype().mutate(MIN_MUTATION,MAX_MUTATION);
             this.addAnimal(child);
+            MapChanged("New child on tile %s".formatted(v));
         }
     }
 
@@ -84,6 +110,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
             throw new IllegalArgumentException("Position %s already has a plant".formatted(position));
         }
         plants.put(position,plant);
+        MapChanged("New plant on tile %s".formatted(position));
     }
 
     // wymaga danych z params do edita
@@ -131,10 +158,14 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
     public void dayPassed() {
         int ENERGY_LOSS = 1;
 
+        MapChanged("%s day passed".formatted(daysElapsed));
+
         daysElapsed++;
         for (Animal animal : animals) {
             animal.setEnergy(animal.getEnergy() - ENERGY_LOSS);
             animal.setAge(animal.getAge() + 1);
+            MapChanged("Animal's energy decreased to %s and age increased to %s"
+                    .formatted(animal.getEnergy(),animal.getAge()));
         }
     }
 

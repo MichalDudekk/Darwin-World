@@ -20,11 +20,13 @@ public class Animal implements Comparable<Animal>{
 //    private boolean isInFrenzy = false;
     private boolean isDead = false;
 
-    public Animal(int energy, Vector2d position, MapDirection direction, Genotype genotype) {
+    public Animal(int energy, Vector2d position,
+                  MapDirection direction, Genotype genotype, MoveStrategy moveStrategy) {
         this.energy = energy;
         this.position = position;
         this.direction = direction;
         this.genotype = genotype;
+        this.moveStrategy = moveStrategy;
     }
 
     public Vector2d getDesirableMove(WorldMap map) {
@@ -32,7 +34,7 @@ public class Animal implements Comparable<Animal>{
     }
 
     public void rotateByGenes() {
-        direction = MapDirection.values()[genotype.getActiveGene()];
+        direction = direction.rotate(genotype.getActiveGene());
     }
 
     public void nextGene() {
@@ -109,7 +111,8 @@ public class Animal implements Comparable<Animal>{
         this.energy -= KONKRETNA_WARTOSC_Z_PARAMS;
         partner.energy -= KONKRETNA_WARTOSC_Z_PARAMS;
 
-        Animal child = new Animal(childEnergy,this.position,MapDirection.getRandom(),childGenotype);
+        Animal child = new Animal(childEnergy,this.position,
+                MapDirection.getRandom(),childGenotype,moveStrategy);
         children.add(child);
         partner.getChildren().add(child);
 

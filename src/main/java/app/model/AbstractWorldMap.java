@@ -1,9 +1,6 @@
 package app.model;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractWorldMap implements WorldMap {
     protected int width;
@@ -12,7 +9,7 @@ public abstract class AbstractWorldMap implements WorldMap {
     protected int jungleTopY;
 
     protected Map<Vector2d, List<Animal>> fields;
-    protected Map<Vector2d, Plant> plants;
+    protected Map<Vector2d, Plant> plants = new HashMap<>();
     protected List<Animal> animals = new ArrayList<>();
 
     protected int daysElapsed = 0;
