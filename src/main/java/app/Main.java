@@ -7,6 +7,7 @@ import java.util.List;
 public class Main {
     public static void main() {
 
+//        MoveStrategy moveStrategy = new FomoMoveStrategy(3,5);
         MoveStrategy moveStrategy = new StandardMoveStrategy();
         Animal cow1 = new Animal(15, new Vector2d(4,4),
                 MapDirection.NORTH_EAST, new Genotype(List.of(0,0,0)),moveStrategy);
@@ -23,10 +24,10 @@ public class Main {
         System.out.println(cow4.getDirection());
 
         List<Animal> animals = List.of(cow1,cow2,cow3,cow4);
-        AbstractWorldMap map = new GlobeMap(5,5,animals);
+        AbstractWorldMap map = new GlobeMap(10,10,animals);
         map.AddListener(new ConsoleLogListener());
 
-        for (int i=0;i<1;i++) {
+        for (int i=0;i<20;i++) {
             System.out.println("=======================");
             map.removeDeadAnimals();
             map.moveAnimals();

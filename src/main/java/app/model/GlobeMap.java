@@ -85,6 +85,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
         int MIN_MUTATION = 2;
         int MAX_MUTATION = 4;
         int MIN_ENERGY_TO_REPRODUCE = 10;
+        int ENERGY_LOSS_ON_COPULATION = 10;
 
         Vector2d[] vectors = fields.keySet().toArray(new Vector2d[0]);
 
@@ -97,7 +98,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
             if (residents.get(1).getEnergy() < MIN_ENERGY_TO_REPRODUCE)
                 continue;
 
-            Animal child = residents.get(0).reproduce(residents.get(1));
+            Animal child = residents.get(0).reproduce(residents.get(1),ENERGY_LOSS_ON_COPULATION);
             child.getGenotype().mutate(MIN_MUTATION,MAX_MUTATION);
             this.addAnimal(child);
             MapChanged("New child on tile %s".formatted(v));
@@ -116,7 +117,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
     // wymaga danych z params do edita
     @Override
     public void growPlants() {
-        int DAILY_PLANT_GROWTH = 10;
+        int DAILY_PLANT_GROWTH = 3;
         int PLANT_ENERGY_VALUE = 5;
 
         List<Vector2d> jungleFree = new ArrayList<>();
@@ -192,7 +193,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator{
             return new MoveResult(intendedMove,orientation);
 
         int newX = intendedX < 0 ? width-1 : intendedX >= width ? 0 : intendedX;
-        int newY = intendedY < 0 ? 1 : intendedY >= height ? height-1 : intendedY;
+        int newY = intendedY < 0 ? 0 : intendedY >= height ? height-1 : intendedY;
 
         if (newY != intendedY)
             orientation = orientation.opposite();

@@ -45,20 +45,8 @@ public class Vector2d {
     }
 
     public Vector2d followTarget(Vector2d target) {
-        int resX = 0;
-        int resY = 0;
-
-        if (x < target.getX()) {
-            resX = 1;
-        } else if (x > target.getX()) {
-            resX = -1;
-        }
-
-        if (y < target.getY()) {
-            resY = 1;
-        } else if (y > target.getY()) {
-            resY = -1;
-        }
+        int resX = x < target.getX() ? 1 : x > target.getX() ? -1 : 0;
+        int resY = y < target.getY() ? 1 : y > target.getY() ? -1 : 0;
 
         return new Vector2d(resX,resY);
     }

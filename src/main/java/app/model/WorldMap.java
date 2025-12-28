@@ -12,7 +12,7 @@ public interface WorldMap {
     public void animalsReproduce();
     public void growPlants();
     public List<Animal> getAnimals();
-    public List<Plant> getPlants();
+    public Map<Vector2d, Plant> getPlants();
     public Map<Vector2d, List<Animal>> getFields();
     public List<Animal> getAnimalsInRadius(Vector2d center, int radius);
     public void addPlant(Vector2d position, Plant plant);

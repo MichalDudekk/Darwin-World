@@ -17,7 +17,6 @@ public class Animal implements Comparable<Animal>{
     private int eatenPlants;
     private MoveStrategy moveStrategy;
     private boolean isTracked = false;
-//    private boolean isInFrenzy = false;
     private boolean isDead = false;
 
     public Animal(int energy, Vector2d position,
@@ -103,13 +102,12 @@ public class Animal implements Comparable<Animal>{
     }
 
     // zależy od Paramsów - wymaga zmian
-    public Animal reproduce(Animal partner) {
+    public Animal reproduce(Animal partner, int energyLoss) {
         Genotype childGenotype = Genotype.crossover(this.genotype,partner.genotype,this.energy, partner.energy);
 
-        int KONKRETNA_WARTOSC_Z_PARAMS = 10; // pozniej ustawić
-        int childEnergy = KONKRETNA_WARTOSC_Z_PARAMS * 2;
-        this.energy -= KONKRETNA_WARTOSC_Z_PARAMS;
-        partner.energy -= KONKRETNA_WARTOSC_Z_PARAMS;
+        int childEnergy = energyLoss * 2;
+        this.energy -= energyLoss;
+        partner.energy -= energyLoss;
 
         Animal child = new Animal(childEnergy,this.position,
                 MapDirection.getRandom(),childGenotype,moveStrategy);

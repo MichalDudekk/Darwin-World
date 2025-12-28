@@ -30,8 +30,8 @@ public abstract class AbstractWorldMap implements WorldMap {
     }
 
     @Override
-    public List<Plant> getPlants() {
-        return List.copyOf(plants.values());
+    public Map<Vector2d, Plant> getPlants() {
+        return plants;
     }
 
     @Override

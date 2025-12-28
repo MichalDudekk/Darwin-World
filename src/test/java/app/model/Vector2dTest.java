@@ -28,7 +28,7 @@ class Vector2dTest {
         Vector2d v = new Vector2d(1,2);
 
         // then
-        assertEquals("(1,2)",v.toString());
+        assertEquals("(1, 2)",v.toString());
     }
 
     @Test
@@ -70,5 +70,59 @@ class Vector2dTest {
         // then
         assertTrue(w.getX() == 3 && w.getY() == 5);
         assertTrue(h.getX() == -1 && h.getY() == -1);
+    }
+
+    @Test
+    void calculateDistanceReturnsCorrectEuclideanDistance() {
+        // given
+        Vector2d v1 = new Vector2d(0, 0);
+        Vector2d v2 = new Vector2d(3, 4); // pythagorean triangle 3-4-5
+
+        // when
+        double distance = v1.calculateDistance(v2);
+
+        // then
+        assertEquals(5.0, distance, 0.001);
+    }
+
+    @Test
+    void followTargetReturnsCorrectUnitVectors() {
+        // given
+        Vector2d current = new Vector2d(5, 5);
+
+        // then
+        assertEquals(new Vector2d(1, 1), current.followTarget(new Vector2d(10, 10)));
+
+        assertEquals(new Vector2d(0, -1), current.followTarget(new Vector2d(5, 0)));
+
+        assertEquals(new Vector2d(-1, 0), current.followTarget(new Vector2d(0, 5)));
+
+        assertEquals(new Vector2d(0, 0), current.followTarget(new Vector2d(5, 5)));
+    }
+
+    @Test
+    void hashCodeIsConsistentWithEquals() {
+        // given
+        Vector2d v1 = new Vector2d(10, 20);
+        Vector2d v2 = new Vector2d(10, 20);
+
+        // then
+        assertEquals(v1, v2);
+        assertEquals(v1.hashCode(), v2.hashCode(), "Same vectors must have same hash codes");
+    }
+
+    @Test
+    void addAndSubtractWorkWithNegativeValues() {
+        // given
+        Vector2d v = new Vector2d(-1, -1);
+        Vector2d u = new Vector2d(5, -2);
+
+        // when
+        Vector2d added = v.add(u);
+        Vector2d subtracted = v.subtract(u);
+
+        // then
+        assertEquals(new Vector2d(4, -3), added);
+        assertEquals(new Vector2d(-6, 1), subtracted);
     }
 }
