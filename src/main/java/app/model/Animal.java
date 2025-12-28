@@ -28,18 +28,6 @@ public class Animal implements Comparable<Animal>{
         this.moveStrategy = moveStrategy;
     }
 
-    public Vector2d getDesirableMove(WorldMap map) {
-        return moveStrategy.decideNextMove(this, map);
-    }
-
-    public void rotateByGenes() {
-        direction = direction.rotate(genotype.getActiveGene());
-    }
-
-    public void nextGene() {
-        genotype.nextGene();
-    }
-
     public Vector2d getPosition() {
         return position;
     }
@@ -94,6 +82,18 @@ public class Animal implements Comparable<Animal>{
 
     public Genotype getGenotype() {
         return genotype;
+    }
+
+    public Vector2d getDesirableMove(WorldMap map) {
+        return moveStrategy.decideNextMove(this, map);
+    }
+
+    public void rotateByGenes() {
+        direction = direction.rotate(genotype.getActiveGene());
+    }
+
+    public void nextGene() {
+        genotype.nextGene();
     }
 
     public void eat(Plant plant) {

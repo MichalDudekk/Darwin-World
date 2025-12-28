@@ -1,6 +1,6 @@
 package app.simulation;
 
-import app.presenter.Params;
+import app.shared.Params;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

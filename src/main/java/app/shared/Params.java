@@ -1,4 +1,4 @@
-package app.presenter;
+package app.shared;
 
 public record Params(
         int mapWidth,

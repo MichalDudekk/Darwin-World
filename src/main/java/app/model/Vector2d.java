@@ -45,8 +45,8 @@ public class Vector2d {
     }
 
     public Vector2d followTarget(Vector2d target) {
-        int resX = x < target.getX() ? 1 : x > target.getX() ? -1 : 0;
-        int resY = y < target.getY() ? 1 : y > target.getY() ? -1 : 0;
+        int resX = Integer.compare(target.getX(), x);
+        int resY = Integer.compare(target.getY(), y);
 
         return new Vector2d(resX,resY);
     }
@@ -59,9 +59,8 @@ public class Vector2d {
     @Override
     public boolean equals(Object other) {
         if (this == other) return true;
-        if (!(other instanceof Vector2d)) return false;
+        if (!(other instanceof Vector2d that)) return false;
 
-        Vector2d that = (Vector2d) other;
         return this.x == that.x && this.y == that.y;
     }
 }

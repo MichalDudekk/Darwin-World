@@ -1,6 +1,9 @@
 package app.presenter;
 
+import app.model.ConsoleLogListener;
+import app.shared.Params;
 import app.simulation.ConfigurationManager;
+import app.simulation.Simulation;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -42,7 +45,11 @@ public class StartMenuController {
             System.out.println("FOMO Mode: " + params.isFomo());
             System.out.println("Params Object: " + params);
 
-            // TODO: Wywołanie prezentera symulacji
+            System.out.println(params);
+
+            Simulation simulation = new Simulation(params);
+            Thread simulationThread = new Thread(simulation);
+            simulationThread.start();
 
         } catch (NumberFormatException e) {
             errorLabel.setText("Błąd: Wszystkie pola liczbowe muszą być liczbami całkowitymi!");
