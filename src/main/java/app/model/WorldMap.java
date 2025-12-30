@@ -5,27 +5,29 @@ import java.util.Map;
 import java.util.Set;
 
 public interface WorldMap {
-    public void addAnimal(Animal animal);
+    void addAnimal(Animal animal);
 
-    public void removeDeadAnimals();
+    void removeDeadAnimals();
 
-    public void moveAnimals();
+    void moveAnimals();
 
-    public void animalsConsume();
+    void animalsConsume();
 
-    public void animalsReproduce();
+    void animalsReproduce();
 
-    public void growPlants();
+    void growPlants(int count);
 
-    public List<Animal> getAnimals();
+    void growPlants();
 
-    public Map<Vector2d, Plant> getPlants();
+    List<Animal> getAnimals();
 
-    public Map<Vector2d, List<Animal>> getFields();
+    Map<Vector2d, Plant> getPlants();
 
-    public List<Animal> getAnimalsInRadius(Vector2d center, int radius);
+    Map<Vector2d, List<Animal>> getFields();
 
-    public void addPlant(Vector2d position, Plant plant);
+    List<Animal> getAnimalsInRadius(Vector2d center, int radius);
 
-    public void dayPassed();
+    void addPlant(Vector2d position, Plant plant);
+
+    void dayPassed();
 }

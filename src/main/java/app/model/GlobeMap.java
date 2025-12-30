@@ -21,6 +21,8 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator {
         for (Animal animal : animals) {
             addAnimal(animal);
         }
+
+        this.growPlants();
     }
 
     @Override

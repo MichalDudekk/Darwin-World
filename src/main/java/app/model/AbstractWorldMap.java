@@ -113,8 +113,26 @@ public abstract class AbstractWorldMap implements WorldMap {
         mapChanged("New plant on tile %s".formatted(position));
     }
 
+    private int plantSeeds(List<Vector2d> spots, int count) {
+        int actualCount = Math.min(count, spots.size());
+
+        for (int i = 0; i < actualCount; i++) {
+            int energy = ThreadLocalRandom.current().nextInt(
+                    config.plantMinEnergy(), config.plantMaxEnergy() + 1
+            );
+            addPlant(spots.get(i), new Plant(energy));
+        }
+
+        return actualCount;
+    }
+
     @Override
     public void growPlants() {
+        growPlants(config.dailyPlantGrowth());
+    }
+
+    @Override
+    public void growPlants(int toBeGrown) {
         List<Vector2d> jungleFree = new ArrayList<>();
         List<Vector2d> stepFree = new ArrayList<>();
 
@@ -134,28 +152,11 @@ public abstract class AbstractWorldMap implements WorldMap {
         Collections.shuffle(jungleFree);
         Collections.shuffle(stepFree);
 
-        // Sadzenie w dżungli (80% z config.dailyPlantGrowth())
-        // TODO: Do przejrzenia bo chyba się powtarza kod
-        int toGrowInJungle = config.dailyPlantGrowth() * 8 / 10;
-        int grownInJungle = 0;
-        for (int i = 0; i < Math.min(toGrowInJungle, jungleFree.size()); i++) {
-            Plant plant = new Plant(ThreadLocalRandom.current().nextInt(
-                    config.plantMinEnergy(), config.plantMaxEnergy() + 1)
-            );
+        int jungleTarget = (int) (toBeGrown * 0.8); // 80%
+        int plantedInJungle = plantSeeds(jungleFree, jungleTarget);
 
-            addPlant(jungleFree.get(i), plant);
-            grownInJungle++;
-        }
-
-        // Reszta na stepie
-        int toGrowOnStep = config.dailyPlantGrowth() - grownInJungle;
-        for (int i = 0; i < Math.min(toGrowOnStep, stepFree.size()); i++) {
-            Plant plant = new Plant(ThreadLocalRandom.current().nextInt(
-                    config.plantMinEnergy(), config.plantMaxEnergy() + 1)
-            );
-
-            addPlant(stepFree.get(i), plant);
-        }
+        int stepTarget = toBeGrown - plantedInJungle;
+        plantSeeds(stepFree, stepTarget);
     }
 
     @Override

@@ -57,6 +57,7 @@ public class StartMenuController {
             createNewSimulation(config);
 
             // TODO: Po odpaleniu kilka razy symulacji się sypie
+            // TODO: Nie pojawiają się startowe rośliny
 
         } catch (NumberFormatException e) {
             errorLabel.setText("Błąd: Wszystkie pola liczbowe muszą być liczbami całkowitymi!");
