@@ -22,7 +22,7 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator {
             addAnimal(animal);
         }
 
-        this.growPlants();
+        this.growPlants(config.initialPlantsNum());
     }
 
     @Override

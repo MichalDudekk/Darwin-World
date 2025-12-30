@@ -10,12 +10,36 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="app.presenter.SimulationController"
-            prefHeight="400.0" prefWidth="600.0">
+            prefHeight="700.0" prefWidth="610.0">
 
-    <center>
-        <VBox alignment="CENTER" style="-fx-background-color: #333333;">
-            <Canvas fx:id="simulationCanvas" width="600" height="600" />
-        </VBox>
-    </center>
+        <top>
+            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #444444; -fx-padding: 5;">
+                <Label text="Zoom:" textFill="WHITE" />
+                <Slider fx:id="zoomSlider" min="600" max="3000" value="600" blockIncrement="50" />
+                <Label text="Grid:" textFill="WHITE" />
+                <CheckBox fx:id="showGridBox" selected="true" onAction="#onRedrawNeeded"/>
+            </HBox>
+        </top>
 
+        <center>
+            <ScrollPane fx:id="mapScrollPane" fitToHeight="true" fitToWidth="true" pannable="true" style="-fx-background: #333333; -fx-border-color: transparent;">
+                <StackPane style="-fx-background-color: #333333;">
+                    <Canvas fx:id="simulationCanvas" height="600.0" onMouseClicked="#onCanvasClicked" width="600.0" />
+                </StackPane>
+            </ScrollPane>
+        </center>
+
+        <bottom>
+            <VBox spacing="5" style="-fx-background-color: #dddddd; -fx-padding: 10;" alignment="CENTER">
+                <Label fx:id="statusLabel" text="Symulacja trwa..." style="-fx-font-weight: bold;"/>
+
+                <HBox alignment="CENTER" spacing="15">
+                    <Button text="&lt;&lt; Start" onAction="#onRewindStart"/>
+                    <Button text="&lt; Krok w tył" onAction="#onStepBack"/>
+                    <Button fx:id="pauseButton" text="PAUZA ||" onAction="#onPauseClicked" prefWidth="100" style="-fx-base: #ffcccc;"/>
+                    <Button fx:id="playButton" text="START &gt;" onAction="#onResumeClicked" prefWidth="100" style="-fx-base: #ccffcc;"/>
+                    <Button text="Krok w przód &gt;" onAction="#onStepForward"/>
+                </HBox>
+            </VBox>
+        </bottom>
 </BorderPane>

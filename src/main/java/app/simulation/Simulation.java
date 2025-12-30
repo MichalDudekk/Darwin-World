@@ -15,7 +15,7 @@ public class Simulation implements Runnable {
     private final List<MapChangeListener> listeners = new ArrayList<>();
 
     private volatile boolean isRunning = true;
-    private volatile boolean isPaused;
+    private volatile boolean isPaused = true;
 
     public Simulation(Config config) {
         this.config = config;
@@ -73,7 +73,7 @@ public class Simulation implements Runnable {
 
     @Override
     public void run() {
-        while (!isPaused) {
+        while (isRunning) {
             synchronized (this) {
                 while (isPaused) {
                     try {

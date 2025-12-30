@@ -7,12 +7,19 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.paint.Color;
 
 public class SimulationController implements MapChangeListener {
     private static final int CELL_SIZE = 20;
 
     @FXML Canvas simulationCanvas;
+    @FXML Label statusLabel;
+    @FXML private CheckBox showGridBox;
+    @FXML private Slider zoomSlider;
+    private double currentZoom = 600.0;
 
     private double cellWidth;
     private double cellHeight;
@@ -27,8 +34,25 @@ public class SimulationController implements MapChangeListener {
 
         simulation.addListener(this);
 
-        // Rysowanie stanu początkowego
-//        drawMap();
+        if (config != null) {
+            drawSystem();
+        }
+    }
+
+    @FXML
+    public void initialize() {
+        zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            currentZoom = newValue.doubleValue();
+            updateCanvasSize();
+            drawSystem();
+        });
+
+        updateCanvasSize();
+    }
+
+    private void updateCanvasSize() {
+        simulationCanvas.setWidth(currentZoom);
+        simulationCanvas.setHeight(currentZoom);
     }
 
     public void setConfig(Config config) {
@@ -43,16 +67,29 @@ public class SimulationController implements MapChangeListener {
         });
     }
 
+    @FXML
+    public void onRedrawNeeded() {
+        drawSystem();
+    }
+
     private void drawSystem() {
         GraphicsContext gc = simulationCanvas.getGraphicsContext2D();
-        double width = simulationCanvas.getWidth();
-        double height = simulationCanvas.getHeight();
+        double size = currentZoom;
 
-        this.cellWidth = width / config.mapWidth();
-        this.cellHeight = height / config.mapHeight();
+        this.cellWidth = size / config.mapWidth();
+        this.cellHeight = size / config.mapHeight();
 
+        // Background fill
         gc.setFill(Color.LIMEGREEN);
-        gc.fillRect(0, 0, width, height);
+        gc.fillRect(0, 0, size, size);
+
+        if (showGridBox.isSelected()) {
+            gc.setStroke(Color.rgb(0, 0, 0, 0.15));
+            gc.setLineWidth(1);
+            // Rysujemy linie siatki
+            for (double i = 0; i <= size; i += cellWidth) gc.strokeLine(i, 0, i, size);
+            for (double i = 0; i <= size; i += cellHeight) gc.strokeLine(0, i, size, i);
+        }
 
         for (Vector2d plantPostion : map.getPlants().keySet()) {
             int x = plantPostion.getX();
@@ -75,5 +112,41 @@ public class SimulationController implements MapChangeListener {
             // Rysowanie samego zwierzaka
             gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
         }
+    }
+
+    @FXML
+    public void onStepBack() {
+
+    }
+
+    @FXML
+    private void onPauseClicked() {
+        if(simulation != null) simulation.pause();
+//        isLive = false; // Przechodzimy w tryb manualny
+        statusLabel.setText("PAUZA");
+    }
+
+    @FXML
+    private void onResumeClicked() {
+        if(simulation != null) simulation.resume();
+//        isLive = true; // Wracamy do live
+        // Przeskakujemy od razu do najnowszego dnia
+//        displayedDay = history.size() - 1;
+        statusLabel.setText("Symulacja trwa...");
+    }
+
+    @FXML
+    public void onRewindStart() {
+
+    }
+
+    @FXML
+    public void onStepForward() {
+
+    }
+
+    @FXML
+    public void onCanvasClicked() {
+
     }
 }
