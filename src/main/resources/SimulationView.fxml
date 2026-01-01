@@ -7,10 +7,11 @@
 <?import javafx.scene.layout.*?>
 
 <?import javafx.scene.canvas.Canvas?>
+<?import javafx.geometry.Insets?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="app.presenter.SimulationController"
-            prefHeight="700.0" prefWidth="610.0">
+            prefHeight="700.0" prefWidth="750.0">
 
         <top>
             <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #444444; -fx-padding: 5;">
@@ -42,4 +43,24 @@
                 </HBox>
             </VBox>
         </bottom>
+
+    <right>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="300">
+            <VBox spacing="10" style="-fx-background-color: #f4f4f4;">
+                <padding>
+                    <Insets bottom="10" left="10" right="10" top="10" />
+                </padding>
+
+                <VBox spacing="3">
+                    <Label fx:id="dayLabel" text="Dzień: 0" style="-fx-font-weight: bold; -fx-font-size: 16px;"/>
+                    <Label fx:id="allAnimalsLabel" text="Zwierzaki: 0" />
+                    <Label fx:id="allPlantsLabel" text="Rośliny: 0" />
+                    <Label fx:id="freeFieldsLabel" text="Wolne pola: 0" />
+                    <Label fx:id="avgEnergyLabel" text="Śr. energia: 0" />
+                    <Label fx:id="avgLifespanLabel" text="Śr. dł. życia: 0" />
+                    <Label fx:id="avgChildrenCount" text="Śr. il. dzieci: 0" />
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </right>
 </BorderPane>

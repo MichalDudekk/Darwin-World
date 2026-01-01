@@ -1,11 +1,15 @@
 package app.simulation;
 
+import app.model.Animal;
+import app.model.Plant;
+import app.model.Vector2d;
+
+import java.util.List;
 import java.util.Map;
 
 public record SimulationState(
-        int day,
-//        Map<Vector2d, List<Animal>>
-//        Map<Vector2d, Plant> plantPositions,
+        Map<Vector2d, List<Animal>> animalPositions,
+        Map<Vector2d, Plant> plantPositions,
         Statistics statistics
 ) {
 

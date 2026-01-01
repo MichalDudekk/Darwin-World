@@ -3,6 +3,8 @@ package app.presenter;
 import app.model.*;
 import app.shared.Config;
 import app.simulation.Simulation;
+import app.simulation.SimulationState;
+import app.simulation.Statistics;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
@@ -12,13 +14,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.paint.Color;
 
-public class SimulationController implements MapChangeListener {
-    private static final int CELL_SIZE = 20;
+import java.util.List;
 
-    @FXML Canvas simulationCanvas;
-    @FXML Label statusLabel;
+public class SimulationController implements MapChangeListener {
+    @FXML private Canvas simulationCanvas;
+    @FXML private Label statusLabel;
     @FXML private CheckBox showGridBox;
     @FXML private Slider zoomSlider;
+    @FXML private Label dayLabel, allAnimalsLabel, allPlantsLabel, freeFieldsLabel, avgEnergyLabel, avgLifespanLabel, avgChildrenCount;
+
     private double currentZoom = 600.0;
 
     private double cellWidth;
@@ -61,6 +65,7 @@ public class SimulationController implements MapChangeListener {
 
     @Override
     public void onMapChanged(WorldMap map, String message) {
+        updateStats();
         Platform.runLater(() -> {
             drawSystem();
 //            updateStats();
@@ -112,6 +117,13 @@ public class SimulationController implements MapChangeListener {
             // Rysowanie samego zwierzaka
             gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
         }
+    }
+
+    private void updateStats() {
+        List<SimulationState> stats = simulation.getHistory();
+        SimulationState currentDayStats = stats.getFirst();
+        dayLabel.setText("Dzień: %s".formatted(stats.toArray().length));
+        dayLabel.
     }
 
     @FXML
