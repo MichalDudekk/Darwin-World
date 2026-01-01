@@ -47,6 +47,10 @@ public abstract class AbstractWorldMap implements WorldMap {
         return animals;
     }
 
+    public int getDaysElapsed() {
+        return daysElapsed;
+    }
+
     @Override
     public void addAnimal(Animal animal) {
         animals.add(animal);
@@ -55,7 +59,9 @@ public abstract class AbstractWorldMap implements WorldMap {
     }
 
     @Override
-    public void removeDeadAnimals() {
+    public List<Animal> removeDeadAnimals() {
+        List<Animal> deadAnimals = new ArrayList<>();
+
         Iterator<Animal> iterator = animals.iterator();
         while (iterator.hasNext()) {
             Animal animal = iterator.next();
@@ -64,9 +70,12 @@ public abstract class AbstractWorldMap implements WorldMap {
                 animal.setIsDead(true);
                 animal.setDeathDate(daysElapsed);
                 fields.get(animal.getPosition()).remove(animal); // removing from fields too
+                deadAnimals.add(animal);
                 mapChanged("Animal died on tile %s".formatted(animal.getPosition()));
             }
         }
+
+        return deadAnimals;
     }
 
     @Override

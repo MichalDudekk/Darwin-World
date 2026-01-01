@@ -7,7 +7,6 @@ public record Statistics(
     double averageEnergy,
     double averageLifespan,
     double averageChildrenCount,
-    int maxEnergy,
-    LifespanStats lifespanStats
+    int maxEnergy
 ) {
 }

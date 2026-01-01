@@ -7,7 +7,7 @@ import java.util.Set;
 public interface WorldMap {
     void addAnimal(Animal animal);
 
-    void removeDeadAnimals();
+    List<Animal> removeDeadAnimals();
 
     void moveAnimals();
 
@@ -22,6 +22,8 @@ public interface WorldMap {
     List<Animal> getAnimals();
 
     Map<Vector2d, Plant> getPlants();
+
+    int getDaysElapsed();
 
     Map<Vector2d, List<Animal>> getFields();
 

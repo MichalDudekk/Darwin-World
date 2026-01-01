@@ -65,10 +65,9 @@ public class SimulationController implements MapChangeListener {
 
     @Override
     public void onMapChanged(WorldMap map, String message) {
-        updateStats();
         Platform.runLater(() -> {
+            updateStats();
             drawSystem();
-//            updateStats();
         });
     }
 
@@ -121,9 +120,15 @@ public class SimulationController implements MapChangeListener {
 
     private void updateStats() {
         List<SimulationState> stats = simulation.getHistory();
-        SimulationState currentDayStats = stats.getFirst();
-        dayLabel.setText("Dzień: %s".formatted(stats.toArray().length));
-        dayLabel.
+        Statistics currentDayStats = stats.getLast().statistics();
+
+        dayLabel.setText("Dzień: %s".formatted(map.getDaysElapsed()));
+        allAnimalsLabel.setText("Zwierzaki: %s".formatted(currentDayStats.animalsCount()));
+        allPlantsLabel.setText("Rośliny: %s".formatted(currentDayStats.plantsCount()));
+        freeFieldsLabel.setText("Wolne pola: %s".formatted(currentDayStats.freeFields()));
+        avgEnergyLabel.setText("Śr. energia: %.2f".formatted(currentDayStats.averageEnergy()));
+        avgLifespanLabel.setText("Śr. dł. życia: %.2f".formatted(currentDayStats.averageLifespan()));
+        avgChildrenCount.setText("Śr. il. dzieci: %.2f".formatted(currentDayStats.averageChildrenCount()));
     }
 
     @FXML

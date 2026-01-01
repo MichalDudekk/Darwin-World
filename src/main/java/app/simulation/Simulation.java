@@ -4,7 +4,6 @@ import app.model.*;
 import app.shared.Config;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Simulation implements Runnable {
     private final UUID id = new UUID(5, 10);
@@ -13,6 +12,7 @@ public class Simulation implements Runnable {
     private final List<SimulationState> history = new ArrayList<>();
 //    private final StatisticsLogger statisticsLogger;
     private final List<MapChangeListener> listeners = new ArrayList<>();
+    private LifespanStats accumulatedLifespanStats = new LifespanStats(0, 0);
 
     private volatile boolean isRunning = true;
     private volatile boolean isPaused = true;
@@ -90,14 +90,16 @@ public class Simulation implements Runnable {
             }
 
             // Day cycle //
-            map.removeDeadAnimals();
+            List<Animal> deadAnimals = map.removeDeadAnimals();
+            updateLifespanStats(deadAnimals);
+
             map.moveAnimals();
             map.animalsConsume();
             map.animalsReproduce();
             map.growPlants();
             map.dayPassed();
 
-            generateSimulationState();
+            saveSimulationState();
 
             notifyListeners();
 
@@ -109,7 +111,26 @@ public class Simulation implements Runnable {
         }
     }
 
-    private void generateSimulationState() {
+    private void updateLifespanStats(List<Animal> deadAnimalsToday) {
+        if (deadAnimalsToday.isEmpty()) return;
+
+        int currentTotalCount = accumulatedLifespanStats.totalAnimals();
+        int currentTotalLifespan = accumulatedLifespanStats.totalLifespan();
+
+        int newDeadCount = deadAnimalsToday.size();
+        int newLifespanSum = 0;
+
+        for (Animal animal : deadAnimalsToday) {
+            newLifespanSum += animal.getAge();
+        }
+
+        this.accumulatedLifespanStats = new LifespanStats(
+                currentTotalCount + newDeadCount,
+                currentTotalLifespan + newLifespanSum
+        );
+    }
+
+    private void saveSimulationState() {
         List<Animal> allAnimals = map.getAnimals();
         Map<Vector2d, List<Animal>> currentAnimalsMap = map.getFields();
         Map<Vector2d, Plant> currentPlantsMap = map.getPlants();
@@ -137,44 +158,38 @@ public class Simulation implements Runnable {
         int mapHeight = config.mapHeight();
         int totalFields = mapWidth * mapHeight;
 
-        Set<Vector2d> occupiedFields = new HashSet<>();
+        Set<Vector2d> occupiedFields = new HashSet<>(currentPlantsMap.keySet());
 
-        occupiedFields.addAll(currentAnimalsMap.keySet());
-        occupiedFields.addAll(currentPlantsMap.keySet());
+        for (Map.Entry<Vector2d, List<Animal>> entry : currentAnimalsMap.entrySet()) {
+            if (!entry.getValue().isEmpty()) {
+                occupiedFields.add(entry.getKey());
+            }
+        }
 
         int freeFields = totalFields - occupiedFields.size();
 
-        // Do zrobienia
-//        double avgLifespan = 0;
-//        if (this.accumulatedLifespanStats.totalAnimals() > 0) {
-//            avgLifespan = (double) this.accumulatedLifespanStats.totalLifespan()
-//                    / this.accumulatedLifespanStats.totalAnimals();
-//        }
+        double avgLifespan = 0;
+        if (this.accumulatedLifespanStats.totalAnimals() > 0) {
+            avgLifespan = (double) this.accumulatedLifespanStats.totalLifespan()
+                    / this.accumulatedLifespanStats.totalAnimals();
+        }
 
-        // TODO
-        LifespanStats lifespanStats = new LifespanStats(
-                0,
-                0
-        );
-
-        // TODO
         Statistics statistics = new Statistics(
                 animalsCount,
                 plantsCount,
                 freeFields,
                 avgEnergy,
-                0,
+                avgLifespan,
                 avgChildren,
-                maxEnergy,
-                lifespanStats
+                maxEnergy
         );
 
         Map<Vector2d, List<Animal>> animalPositionsSnapshot = new java.util.HashMap<>();
         for (Map.Entry<Vector2d, List<Animal>> entry : currentAnimalsMap.entrySet()) {
-            animalPositionsSnapshot.put(entry.getKey(), new java.util.ArrayList<>(entry.getValue()));
+            animalPositionsSnapshot.put(entry.getKey(), new ArrayList<>(entry.getValue()));
         }
 
-        Map<Vector2d, Plant> plantPositionsSnapshot = new java.util.HashMap<>(currentPlantsMap);
+        Map<Vector2d, Plant> plantPositionsSnapshot = new HashMap<>(currentPlantsMap);
 
         SimulationState newState = new SimulationState(
                 animalPositionsSnapshot,

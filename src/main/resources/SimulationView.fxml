@@ -45,7 +45,7 @@
         </bottom>
 
     <right>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="300">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="150">
             <VBox spacing="10" style="-fx-background-color: #f4f4f4;">
                 <padding>
                     <Insets bottom="10" left="10" right="10" top="10" />
