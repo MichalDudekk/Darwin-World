@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public record SimulationState(
-        Map<Vector2d, List<Animal>> animalPositions,
+        Map<Vector2d, List<AnimalInfo>> animalPositions,
         Map<Vector2d, Plant> plantPositions,
         Statistics statistics
 ) {

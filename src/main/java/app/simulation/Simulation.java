@@ -6,7 +6,7 @@ import app.shared.Config;
 import java.util.*;
 
 public class Simulation implements Runnable {
-    private final UUID id = new UUID(5, 10);
+    private final UUID id = UUID.randomUUID();
     private final Config config;
     private final AbstractWorldMap map;
     private final List<SimulationState> history = new ArrayList<>();
@@ -89,24 +89,35 @@ public class Simulation implements Runnable {
                 }
             }
 
-            // Day cycle //
-            List<Animal> deadAnimals = map.removeDeadAnimals();
-            updateLifespanStats(deadAnimals);
-
-            map.moveAnimals();
-            map.animalsConsume();
-            map.animalsReproduce();
-            map.growPlants();
-            map.dayPassed();
-
-            saveSimulationState();
-
-            notifyListeners();
+           simulateDay();
 
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 break;
+            }
+        }
+    }
+
+    private void simulateDay() {
+        List<Animal> deadAnimals = map.removeDeadAnimals();
+        updateLifespanStats(deadAnimals);
+
+        map.moveAnimals();
+        map.animalsConsume();
+        map.animalsReproduce();
+        map.growPlants();
+        map.dayPassed();
+
+        saveSimulationState();
+
+        notifyListeners();
+    }
+
+    public void step() {
+        synchronized (this) {
+            if (isPaused) {
+                simulateDay();
             }
         }
     }
@@ -184,15 +195,32 @@ public class Simulation implements Runnable {
                 maxEnergy
         );
 
-        Map<Vector2d, List<Animal>> animalPositionsSnapshot = new java.util.HashMap<>();
-        for (Map.Entry<Vector2d, List<Animal>> entry : currentAnimalsMap.entrySet()) {
-            animalPositionsSnapshot.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        Map<Vector2d, List<AnimalInfo>> animalSnapshot = new HashMap<>();
+
+        for (Map.Entry<Vector2d, List<Animal>> entry : map.getFields().entrySet()) {
+            Vector2d pos = entry.getKey();
+            List<Animal> liveAnimals = entry.getValue();
+
+            List<AnimalInfo> infoList = new ArrayList<>();
+
+            for (Animal animal : liveAnimals) {
+                infoList.add(new AnimalInfo(
+                        animal.getPosition(),
+                        animal.getEnergy(),
+                        animal.getGenotype().toString(),
+                        animal.getId()
+                ));
+            }
+
+            if (!infoList.isEmpty()) {
+                animalSnapshot.put(pos, infoList);
+            }
         }
 
         Map<Vector2d, Plant> plantPositionsSnapshot = new HashMap<>(currentPlantsMap);
 
         SimulationState newState = new SimulationState(
-                animalPositionsSnapshot,
+                animalSnapshot,
                 plantPositionsSnapshot,
                 statistics
         );

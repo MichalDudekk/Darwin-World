@@ -2,6 +2,7 @@ package app.presenter;
 
 import app.model.*;
 import app.shared.Config;
+import app.simulation.AnimalInfo;
 import app.simulation.Simulation;
 import app.simulation.SimulationState;
 import app.simulation.Statistics;
@@ -28,6 +29,9 @@ public class SimulationController implements MapChangeListener {
     private double cellWidth;
     private double cellHeight;
 
+    private int currentDayIndex = 0;
+    private boolean isLive = true;
+
     private Simulation simulation;
     private WorldMap map;
     private Config config;
@@ -39,7 +43,22 @@ public class SimulationController implements MapChangeListener {
         simulation.addListener(this);
 
         if (config != null) {
-            drawSystem();
+            List<SimulationState> history = simulation.getHistory();
+
+            if (!history.isEmpty()) {
+                this.currentDayIndex = history.size() - 1;
+
+                SimulationState initialState = history.get(currentDayIndex);
+
+                drawSystem(initialState);
+
+                 updateStats(initialState.statistics());
+            } else {
+                GraphicsContext gc = simulationCanvas.getGraphicsContext2D();
+                gc.clearRect(0, 0, simulationCanvas.getWidth(), simulationCanvas.getHeight());
+                gc.setFill(Color.LIMEGREEN);
+                gc.fillRect(0, 0, simulationCanvas.getWidth(), simulationCanvas.getHeight());
+            }
         }
     }
 
@@ -48,7 +67,7 @@ public class SimulationController implements MapChangeListener {
         zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             currentZoom = newValue.doubleValue();
             updateCanvasSize();
-            drawSystem();
+            onRedrawNeeded();
         });
 
         updateCanvasSize();
@@ -66,17 +85,32 @@ public class SimulationController implements MapChangeListener {
     @Override
     public void onMapChanged(WorldMap map, String message) {
         Platform.runLater(() -> {
-            updateStats();
-            drawSystem();
+            if (isLive || currentDayIndex == simulation.getHistory().size() - 2) {
+                List<SimulationState> history = simulation.getHistory();
+
+                if (!history.isEmpty()) {
+                    currentDayIndex = history.size() - 1;
+
+                    SimulationState latestState = history.get(currentDayIndex);
+                    updateStats(latestState.statistics());
+                    drawSystem(latestState);
+                }
+            }
         });
     }
 
     @FXML
-    public void onRedrawNeeded() {
-        drawSystem();
+    private void onRedrawNeeded() {
+        List<SimulationState> history = simulation.getHistory();
+        if (!history.isEmpty() && currentDayIndex < history.size()) {
+            SimulationState state = history.get(currentDayIndex);
+            drawSystem(state);
+            updateStats(state.statistics());
+        }
+
     }
 
-    private void drawSystem() {
+    private void drawSystem(SimulationState state) {
         GraphicsContext gc = simulationCanvas.getGraphicsContext2D();
         double size = currentZoom;
 
@@ -90,76 +124,100 @@ public class SimulationController implements MapChangeListener {
         if (showGridBox.isSelected()) {
             gc.setStroke(Color.rgb(0, 0, 0, 0.15));
             gc.setLineWidth(1);
-            // Rysujemy linie siatki
+
             for (double i = 0; i <= size; i += cellWidth) gc.strokeLine(i, 0, i, size);
             for (double i = 0; i <= size; i += cellHeight) gc.strokeLine(0, i, size, i);
         }
 
-        for (Vector2d plantPostion : map.getPlants().keySet()) {
-            int x = plantPostion.getX();
-            int y = plantPostion.getY();
-
+        for (Vector2d plantPos : state.plantPositions().keySet()) {
             gc.setFill(Color.FORESTGREEN);
-
-            // Rysowanie samego zwierzaka
-            gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            gc.fillRect(plantPos.getX() * cellWidth, plantPos.getY() * cellHeight, cellWidth, cellHeight);
         }
 
-        for (Animal animal : map.getAnimals()) {
-            int x = animal.getPosition().getX();
-            int y = animal.getPosition().getY();
-            int energy = animal.getEnergy(); // 0-100
+        for (List<AnimalInfo> animalsOnTile : state.animalPositions().values()) {
+            for (AnimalInfo animalInfo : animalsOnTile) {
 
-            double hue = (energy / 100.0) * 240.0;
-            gc.setFill(Color.hsb(hue, 1.0, 1.0));
+                int x = animalInfo.position().getX();
+                int y = animalInfo.position().getY();
+                int energy = animalInfo.energy();
 
-            // Rysowanie samego zwierzaka
-            gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+                double energyRatio = Math.min(1.0, (double) energy / 100.0);
+                gc.setFill(Color.hsb(energyRatio * 120.0, 1.0, 1.0));
+
+                gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            }
         }
+
+        dayLabel.setText("Dzień: %s".formatted(currentDayIndex + 1));
     }
 
-    private void updateStats() {
-        List<SimulationState> stats = simulation.getHistory();
-        Statistics currentDayStats = stats.getLast().statistics();
-
-        dayLabel.setText("Dzień: %s".formatted(map.getDaysElapsed()));
-        allAnimalsLabel.setText("Zwierzaki: %s".formatted(currentDayStats.animalsCount()));
-        allPlantsLabel.setText("Rośliny: %s".formatted(currentDayStats.plantsCount()));
-        freeFieldsLabel.setText("Wolne pola: %s".formatted(currentDayStats.freeFields()));
-        avgEnergyLabel.setText("Śr. energia: %.2f".formatted(currentDayStats.averageEnergy()));
-        avgLifespanLabel.setText("Śr. dł. życia: %.2f".formatted(currentDayStats.averageLifespan()));
-        avgChildrenCount.setText("Śr. il. dzieci: %.2f".formatted(currentDayStats.averageChildrenCount()));
-    }
-
-    @FXML
-    public void onStepBack() {
-
+    private void updateStats(Statistics statistics) {
+        allAnimalsLabel.setText("Zwierzaki: %s".formatted(statistics.animalsCount()));
+        allPlantsLabel.setText("Rośliny: %s".formatted(statistics.plantsCount()));
+        freeFieldsLabel.setText("Wolne pola: %s".formatted(statistics.freeFields()));
+        avgEnergyLabel.setText("Śr. energia: %.2f".formatted(statistics.averageEnergy()));
+        avgLifespanLabel.setText("Śr. dł. życia: %.2f".formatted(statistics.averageLifespan()));
+        avgChildrenCount.setText("Śr. il. dzieci: %.2f".formatted(statistics.averageChildrenCount()));
     }
 
     @FXML
     private void onPauseClicked() {
         if(simulation != null) simulation.pause();
-//        isLive = false; // Przechodzimy w tryb manualny
-        statusLabel.setText("PAUZA");
+        isLive = false;
+        statusLabel.setText("Symulacja zatrzymana");
     }
 
     @FXML
     private void onResumeClicked() {
         if(simulation != null) simulation.resume();
-//        isLive = true; // Wracamy do live
-        // Przeskakujemy od razu do najnowszego dnia
-//        displayedDay = history.size() - 1;
+        isLive = true;
         statusLabel.setText("Symulacja trwa...");
     }
 
     @FXML
-    public void onRewindStart() {
+    public void onRewindToStart() {
+        onPauseClicked();
 
+        currentDayIndex = 0;
+        onRedrawNeeded();
+    }
+
+    @FXML
+    public void onStepBack() {
+        onPauseClicked();
+
+        if (currentDayIndex > 0) {
+            currentDayIndex--;
+            onRedrawNeeded();
+        }
     }
 
     @FXML
     public void onStepForward() {
+        onPauseClicked();
 
+        List<SimulationState> history = simulation.getHistory();
+
+        if (currentDayIndex < history.size() - 1) {
+            currentDayIndex++;
+            SimulationState state = history.get(currentDayIndex);
+            drawSystem(state);
+        }
+        else {
+            simulation.step();
+            List<SimulationState> newHistory = simulation.getHistory();
+            drawSystem(newHistory.getLast());
+        }
+    }
+
+    @FXML
+    public void onStepEnd() {
+        onPauseClicked();
+        List<SimulationState> history = simulation.getHistory();
+
+        currentDayIndex = history.size() - 1;
+
+        onRedrawNeeded();
     }
 
     @FXML

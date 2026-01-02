@@ -16,21 +16,6 @@ public abstract class AbstractWorldMap implements WorldMap {
     protected List<Animal> animals = new ArrayList<>();
 
     protected int daysElapsed = 0;
-    protected List<MapChangeListener> listeners = new ArrayList<>();
-
-    public void mapChanged(String message) {
-        for (MapChangeListener listener : listeners) {
-            listener.onMapChanged(this,message);
-        }
-    }
-
-    public void addListener(MapChangeListener listener) {
-        listeners.add(listener);
-    }
-
-    public void removeListener(MapChangeListener listener) {
-        listeners.remove(listener);
-    }
 
     @Override
     public Map<Vector2d, Plant> getPlants() {
@@ -55,7 +40,6 @@ public abstract class AbstractWorldMap implements WorldMap {
     public void addAnimal(Animal animal) {
         animals.add(animal);
         fields.get(animal.getPosition()).add(animal);
-        mapChanged("New animal on tile %s".formatted(animal.getPosition()));
     }
 
     @Override
@@ -71,7 +55,6 @@ public abstract class AbstractWorldMap implements WorldMap {
                 animal.setDeathDate(daysElapsed);
                 fields.get(animal.getPosition()).remove(animal); // removing from fields too
                 deadAnimals.add(animal);
-                mapChanged("Animal died on tile %s".formatted(animal.getPosition()));
             }
         }
 
@@ -89,7 +72,6 @@ public abstract class AbstractWorldMap implements WorldMap {
             residents.sort(Comparator.reverseOrder()); // sortowanie malejące
             residents.getFirst().eat(plants.get(v));
             plants.remove(v);
-            mapChanged("Plant eaten on tile %s".formatted(v));
         }
     }
 
@@ -109,7 +91,6 @@ public abstract class AbstractWorldMap implements WorldMap {
             Animal child = residents.get(0).reproduce(residents.get(1), config.energyUsedToReproduce());
             child.getGenotype().mutate(config.minMutations(), config.maxMutations());
             this.addAnimal(child);
-            mapChanged("New child on tile %s".formatted(v));
         }
     }
 
@@ -119,7 +100,6 @@ public abstract class AbstractWorldMap implements WorldMap {
             throw new IllegalArgumentException("Position %s already has a plant".formatted(position));
         }
         plants.put(position,plant);
-        mapChanged("New plant on tile %s".formatted(position));
     }
 
     private int plantSeeds(List<Vector2d> spots, int count) {
@@ -170,14 +150,10 @@ public abstract class AbstractWorldMap implements WorldMap {
 
     @Override
     public void dayPassed() {
-        mapChanged("%s day passed".formatted(daysElapsed));
-
         daysElapsed++;
         for (Animal animal : animals) {
             animal.setEnergy(animal.getEnergy() - config.animalEnergyLoss());
             animal.setAge(animal.getAge() + 1);
-            mapChanged("Animal's energy decreased to %s and age increased to %s"
-                    .formatted(animal.getEnergy(),animal.getAge()));
         }
     }
 

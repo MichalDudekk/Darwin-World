@@ -39,8 +39,6 @@ public class GlobeMap extends AbstractWorldMap implements MoveValidator {
 
             fields.get(prevPosition).remove(animal);
             fields.get(res.position()).add(animal);
-
-            mapChanged("Animal moved from %s to %s".formatted(prevPosition,animal.getPosition()));
         }
     }
 
