@@ -9,6 +9,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -20,24 +21,24 @@ public class StartMenuController {
     @FXML private TextField configNameField;
     @FXML private Label configInfo;
 
-    @FXML private TextField mapWidthField;
-    @FXML private TextField mapHeightField;
-    @FXML private TextField initialPlantsNumField;
-    @FXML private TextField plantMinEnergyField;
-    @FXML private TextField plantMaxEnergyField;
-    @FXML private TextField dailyPlantGrowthField;
-    @FXML private TextField initialAnimalsNumField;
-    @FXML private TextField animalEnergyLossField;
-    @FXML private TextField animalStartEnergyField;
-    @FXML private TextField energyNeededToReproduceField;
-    @FXML private TextField energyUsedToReproduceField;
-    @FXML private TextField minMutationsField;
-    @FXML private TextField maxMutationsField;
-    @FXML private TextField genomeLengthField;
+    @FXML private Spinner<Integer> mapWidthSpinner;
+    @FXML private Spinner<Integer> mapHeightSpinner;
+    @FXML private Spinner<Integer> initialPlantsNumSpinner;
+    @FXML private Spinner<Integer> plantMinEnergySpinner;
+    @FXML private Spinner<Integer> plantMaxEnergySpinner;
+    @FXML private Spinner<Integer> dailyPlantGrowthSpinner;
+    @FXML private Spinner<Integer> initialAnimalsNumSpinner;
+    @FXML private Spinner<Integer> animalEnergyLossSpinner;
+    @FXML private Spinner<Integer> animalStartEnergySpinner;
+    @FXML private Spinner<Integer> energyNeededToReproduceSpinner;
+    @FXML private Spinner<Integer> energyUsedToReproduceSpinner;
+    @FXML private Spinner<Integer> minMutationsSpinner;
+    @FXML private Spinner<Integer> maxMutationsSpinner;
+    @FXML private Spinner<Integer> genomeLengthSpinner;
 
     @FXML private CheckBox isFomoCheckBox;
-    @FXML private TextField fomoRadiusField;
-    @FXML private TextField fomoCrowdSizeField;
+    @FXML private Spinner<Integer> fomoRadiusSpinner;
+    @FXML private Spinner<Integer> fomoCrowdSizeSpinner;
 
     @FXML private Label errorLabel;
 
@@ -124,51 +125,56 @@ public class StartMenuController {
     }
 
     private void updateGuiFromParams(Config config) {
-        mapWidthField.setText(String.valueOf(config.mapWidth()));
-        mapHeightField.setText(String.valueOf(config.mapHeight()));
-        initialAnimalsNumField.setText(String.valueOf(config.initialAnimalsNum()));
-        plantMinEnergyField.setText(String.valueOf(config.plantMinEnergy()));
-        plantMaxEnergyField.setText(String.valueOf(config.plantMaxEnergy()));
-        dailyPlantGrowthField.setText(String.valueOf(config.dailyPlantGrowth()));
-        initialAnimalsNumField.setText(String.valueOf(config.initialAnimalsNum()));
-        animalEnergyLossField.setText(String.valueOf(config.animalEnergyLoss()));
-        energyNeededToReproduceField.setText(String.valueOf(config.energyNeededToReproduce()));
-        energyUsedToReproduceField.setText(String.valueOf(config.energyUsedToReproduce()));
-        minMutationsField.setText(String.valueOf(config.minMutations()));
-        maxMutationsField.setText(String.valueOf(config.maxMutations()));
-        genomeLengthField.setText(String.valueOf(config.genomLength()));
+        setSpinnerValue(mapWidthSpinner, config.mapWidth());
+        setSpinnerValue(mapHeightSpinner, config.mapHeight());
+
+        setSpinnerValue(initialPlantsNumSpinner, config.initialPlantsNum());
+        setSpinnerValue(plantMinEnergySpinner, config.plantMinEnergy());
+        setSpinnerValue(plantMaxEnergySpinner, config.plantMaxEnergy());
+        setSpinnerValue(dailyPlantGrowthSpinner, config.dailyPlantGrowth());
+
+        setSpinnerValue(initialAnimalsNumSpinner, config.initialAnimalsNum());
+        setSpinnerValue(animalStartEnergySpinner, config.animalStartEnergy()); // Dodałem to, bo brakowało w Twojej liście (był duplikat animalsNum)
+        setSpinnerValue(animalEnergyLossSpinner, config.animalEnergyLoss());
+        setSpinnerValue(energyNeededToReproduceSpinner, config.energyNeededToReproduce());
+        setSpinnerValue(energyUsedToReproduceSpinner, config.energyUsedToReproduce());
+
+        setSpinnerValue(minMutationsSpinner, config.minMutations());
+        setSpinnerValue(maxMutationsSpinner, config.maxMutations());
+        setSpinnerValue(genomeLengthSpinner, config.genomLength());
+
         isFomoCheckBox.setSelected(config.isFomo());
-        fomoRadiusField.setText(String.valueOf(config.fomoRadius()));
-        fomoCrowdSizeField.setText(String.valueOf(config.fomoCrowdSize()));
+        setSpinnerValue(fomoRadiusSpinner, config.fomoRadius());
+        setSpinnerValue(fomoCrowdSizeSpinner, config.fomoCrowdSize());
     }
 
-    private int getInt(TextField field) {
-        String text = field.getText();
-        if (text == null || text.trim().isEmpty()) {
-            throw new IllegalArgumentException("Pola nie mogą być puste");
-        }
-        return Integer.parseInt(text.trim());
+    private void setSpinnerValue(Spinner<Integer> spinner, int value) {
+        spinner.getValueFactory().setValue(value);
+    }
+
+    private int getInt(Spinner<Integer> spinner) {
+        return spinner.getValue();
     }
 
     private Config getConfig() {
         return new Config(
-                getInt(mapWidthField),
-                getInt(mapHeightField),
-                getInt(initialPlantsNumField),
-                getInt(plantMinEnergyField),
-                getInt(plantMaxEnergyField),
-                getInt(dailyPlantGrowthField),
-                getInt(initialAnimalsNumField),
-                getInt(animalEnergyLossField),
-                getInt(animalStartEnergyField),
-                getInt(energyNeededToReproduceField),
-                getInt(energyUsedToReproduceField),
-                getInt(minMutationsField),
-                getInt(maxMutationsField),
-                getInt(genomeLengthField),
+                getInt(mapWidthSpinner),
+                getInt(mapHeightSpinner),
+                getInt(initialPlantsNumSpinner),
+                getInt(plantMinEnergySpinner),
+                getInt(plantMaxEnergySpinner),
+                getInt(dailyPlantGrowthSpinner),
+                getInt(initialAnimalsNumSpinner),
+                getInt(animalEnergyLossSpinner),
+                getInt(animalStartEnergySpinner),
+                getInt(energyNeededToReproduceSpinner),
+                getInt(energyUsedToReproduceSpinner),
+                getInt(minMutationsSpinner),
+                getInt(maxMutationsSpinner),
+                getInt(genomeLengthSpinner),
                 isFomoCheckBox.isSelected(),
-                getInt(fomoRadiusField),
-                getInt(fomoCrowdSizeField)
+                getInt(fomoRadiusSpinner),
+                getInt(fomoCrowdSizeSpinner)
         );
     }
 }
