@@ -8,23 +8,21 @@ import app.simulation.SimulationState;
 import app.simulation.Statistics;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Orientation;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.ComboBox;
 import javafx.scene.shape.Circle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class SimulationController implements MapChangeListener {
@@ -55,6 +53,7 @@ public class SimulationController implements MapChangeListener {
     @FXML private ComboBox<String> statSelectionBox;
     @FXML private HBox legendContainer;
     @FXML private LineChart<Number, Number> statChart;
+    @FXML private VBox genotypeListContainer;
     private XYChart.Series<Number, Number> chartSeries;
 
     private double currentZoom = 600.0;
@@ -128,13 +127,21 @@ public class SimulationController implements MapChangeListener {
         legendContainer.getChildren().add(createLegendItem(COLOR_JUNGLE, "Dżungla"));
         legendContainer.getChildren().add(createLegendItem(COLOR_PLANT, "Roślina"));
 
-        legendContainer.getChildren().add(new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL));
+        legendContainer.getChildren().add(new Separator(Orientation.VERTICAL));
 
         Color weakAnimalColor = Color.hsb(ANIMAL_HUE, 1.0, 0.5);
         legendContainer.getChildren().add(createLegendItem(weakAnimalColor, "Min Energia"));
 
         Color strongAnimalColor = Color.hsb(ANIMAL_HUE, 1.0, 1.0);
         legendContainer.getChildren().add(createLegendItem(strongAnimalColor, "Max Energia"));
+
+        legendContainer.getChildren().add(new Separator(Orientation.VERTICAL));
+
+        Color trackedAnimalColor = Color.WHITE;
+        legendContainer.getChildren().add(createLegendItem(trackedAnimalColor, "Śledzony zwierzak"));
+
+        Color dominantAnimalColor = Color.GOLD;
+        legendContainer.getChildren().add(createLegendItem(dominantAnimalColor, "Dominujący genotyp"));
     }
 
     private HBox createLegendItem(Color color, String labelText) {
@@ -221,6 +228,7 @@ public class SimulationController implements MapChangeListener {
             }
         }
 
+        // 1. Fill background
         double jungleRatio = 0.2;
         int mapHeight = config.mapHeight();
 
@@ -241,6 +249,7 @@ public class SimulationController implements MapChangeListener {
             }
         }
 
+        // 2. Draw grid
         if (showGridBox.isSelected()) {
             gc.setStroke(Color.rgb(0, 0, 0, 0.15));
             gc.setLineWidth(1);
@@ -249,12 +258,19 @@ public class SimulationController implements MapChangeListener {
             for (double i = 0; i <= height; i += cellHeight) gc.strokeLine(0, i, width, i);
         }
 
+        // 3. Draw plants
         for (Vector2d plantPos : state.plantPositions().keySet()) {
             gc.setFill(COLOR_PLANT);
             gc.fillRect(plantPos.getX() * cellWidth, plantPos.getY() * cellHeight, cellWidth, cellHeight);
         }
 
+        // 4. Draw animals
         double currentMaxEnergy = Math.max(1.0, state.statistics().maxEnergy());
+
+        String dominantGenotype = null;
+        if (!state.statistics().topGenotypes().isEmpty()) {
+            dominantGenotype = state.statistics().topGenotypes().getFirst().getKey();
+        }
 
         for (List<AnimalInfo> animalsOnTile : state.animalPositions().values()) {
             for (AnimalInfo animalInfo : animalsOnTile) {
@@ -270,6 +286,12 @@ public class SimulationController implements MapChangeListener {
 
                 gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
 
+                if (animalInfo.genotype().equals(dominantGenotype)) {
+                    gc.setStroke(Color.GOLD);
+                    gc.setLineWidth(2);
+                    gc.strokeOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+                }
+
                 if (trackedAnimalId != null && animalInfo.id() == trackedAnimalId) {
                     gc.setStroke(Color.WHITE);
                     gc.setLineWidth(2);
@@ -280,16 +302,51 @@ public class SimulationController implements MapChangeListener {
             }
         }
 
+        // 6. Wypisanie obecnego dnia
         dayLabel.setText("Dzień: %s".formatted(currentDayIndex + 1));
     }
 
     private void updateStats(Statistics statistics) {
-        allAnimalsLabel.setText("Zwierzaki: %s".formatted(statistics.animalsCount()));
-        allPlantsLabel.setText("Rośliny: %s".formatted(statistics.plantsCount()));
-        freeFieldsLabel.setText("Wolne pola: %s".formatted(statistics.freeFields()));
+        allAnimalsLabel.setText("%s".formatted(statistics.animalsCount()));
+        allPlantsLabel.setText("%s".formatted(statistics.plantsCount()));
+        freeFieldsLabel.setText("%s".formatted(statistics.freeFields()));
         avgEnergyLabel.setText("Śr. energia: %.2f".formatted(statistics.averageEnergy()));
         avgLifespanLabel.setText("Śr. dł. życia: %.2f".formatted(statistics.averageLifespan()));
         avgChildrenCount.setText("Śr. il. dzieci: %.2f".formatted(statistics.averageChildrenCount()));
+
+        genotypeListContainer.getChildren().clear();
+
+        if (statistics.topGenotypes().isEmpty()) {
+            genotypeListContainer.getChildren().add(new Label("Brak danych"));
+        } else {
+            int rank = 1;
+            for (Map.Entry<String, Integer> entry : statistics.topGenotypes()) {
+                String rawGenotype = entry.getKey();
+                int count = entry.getValue();
+
+                String displayText;
+                if (rawGenotype.length() > 20) {
+                    displayText = String.format("%d. %s ... %s (%d)",
+                            rank,
+                            rawGenotype.substring(0, 20),
+                            rawGenotype.substring(rawGenotype.length() - 15),
+                            count
+                    );
+                } else {
+                    displayText = String.format("%d. %s (%d)", rank, rawGenotype, count);
+                }
+
+                Label label = new Label(displayText);
+                label.getStyleClass().add("genotype-item");
+
+                if (rank == 1) {
+                    label.getStyleClass().add("genotype-leader");
+                }
+
+                genotypeListContainer.getChildren().add(label);
+                rank++;
+            }
+        }
 
         refreshChart();
     }
@@ -454,14 +511,14 @@ public class SimulationController implements MapChangeListener {
     }
 
     private void updateTrackedAnimalPanel(AnimalInfo info) {
-        trackedIdLabel.setText("ID: " + info.id());
-        trackedGenotypeArea.setText("Genom: " + info.genotype());
+        trackedIdLabel.setText("ID" + info.id());
+        trackedGenotypeArea.setText(info.genotype());
         trackedActiveGeneLabel.setText("Aktywny gen: " + info.activeGene());
-        trackedEnergyLabel.setText("Energia: " + info.energy());
+        trackedEnergyLabel.setText(String.valueOf(info.energy()));
         trackedPlantsLabel.setText("Zjedzone rośliny: " + info.plantsEaten());
-        trackedChildrenLabel.setText("Dzieci: " + info.childrenCount());
+        trackedChildrenLabel.setText(String.valueOf(info.childrenCount()));
         trackedDescendantsLabel.setText("Potomkowie: " + info.descendantsCount());
-        trackedAgeLabel.setText("Wiek: " + info.daysLived());
+        trackedAgeLabel.setText(String.valueOf(info.daysLived()));
 
         if (info.deathDay() != null) {
             trackedDeathLabel.setText("Zmarł w dniu: " + info.deathDay());

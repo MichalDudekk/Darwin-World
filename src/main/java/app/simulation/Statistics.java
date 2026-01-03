@@ -1,5 +1,8 @@
 package app.simulation;
 
+import java.util.List;
+import java.util.Map;
+
 public record Statistics(
     int animalsCount,
     int plantsCount,
@@ -7,6 +10,7 @@ public record Statistics(
     double averageEnergy,
     double averageLifespan,
     double averageChildrenCount,
-    int maxEnergy
+    int maxEnergy,
+    List<Map.Entry<String, Integer>> topGenotypes
 ) {
 }

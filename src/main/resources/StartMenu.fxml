@@ -7,7 +7,7 @@
 
 <ScrollPane fitToWidth="true" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.presenter.StartMenuController" styleClass="main-scroll-pane">
     <stylesheets>
-        <URL value="@style.css" />
+        <URL value="@menuStyles.css" />
     </stylesheets>
 
     <VBox alignment="CENTER" spacing="25.0" styleClass="main-container">

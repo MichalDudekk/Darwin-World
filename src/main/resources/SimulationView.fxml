@@ -101,6 +101,13 @@
                 </VBox>
 
                 <VBox spacing="10" styleClass="card">
+                    <Label text="TOP 3 GENOTYPY" styleClass="card-title" maxWidth="Infinity"/>
+
+                    <VBox fx:id="genotypeListContainer" spacing="5">
+                    </VBox>
+                </VBox>
+
+                <VBox spacing="10" styleClass="card">
                     <Label text="ŚLEDZONY ZWIERZAK" styleClass="card-title" maxWidth="Infinity"/>
 
                     <Label fx:id="noAnimalSelectedLabel" text="(Kliknij na zwierzę, by śledzić)" style="-fx-font-style: italic; -fx-text-fill: #95a5a6;"/>

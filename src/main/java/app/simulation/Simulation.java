@@ -4,6 +4,7 @@ import app.model.*;
 import app.shared.Config;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Simulation implements Runnable {
     private final UUID id = UUID.randomUUID();
@@ -185,6 +186,17 @@ public class Simulation implements Runnable {
                     / this.accumulatedLifespanStats.totalAnimals();
         }
 
+        Map<String, Integer> genotypeCounts = map.getAnimals().stream()
+                .collect(Collectors.groupingBy(
+                        animal -> animal.getGenotype().toString(),
+                        Collectors.summingInt(x -> 1)
+                ));
+
+        List<Map.Entry<String, Integer>> top3Genotypes = genotypeCounts.entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())) // Sortowanie malejące
+                .limit(3)
+                .toList();
+
         Statistics statistics = new Statistics(
                 animalsCount,
                 plantsCount,
@@ -192,7 +204,8 @@ public class Simulation implements Runnable {
                 avgEnergy,
                 avgLifespan,
                 avgChildren,
-                maxEnergy
+                maxEnergy,
+                top3Genotypes
         );
 
         Map<Vector2d, List<AnimalInfo>> animalSnapshot = new HashMap<>();

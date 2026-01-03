@@ -127,3 +127,21 @@
 .axis-label {
     -fx-text-fill: #7f8c8d;
 }
+
+.genotype-item {
+    -fx-font-family: 'Consolas', 'Monospaced', monospace;
+    -fx-font-size: 11px;
+    -fx-text-fill: #34495e;
+    -fx-padding: 2 5;
+    -fx-background-color: #fdfdfd;
+    -fx-background-radius: 3;
+    -fx-border-color: #ecf0f1;
+    -fx-border-radius: 3;
+}
+
+.genotype-leader {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2980b9;
+    -fx-border-color: #3498db;
+    -fx-background-color: #ebf5fb;
+}
