@@ -13,9 +13,13 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import java.util.List;
+import java.util.UUID;
 
 public class SimulationController implements MapChangeListener {
     @FXML private Canvas simulationCanvas;
@@ -23,6 +27,12 @@ public class SimulationController implements MapChangeListener {
     @FXML private CheckBox showGridBox;
     @FXML private Slider zoomSlider;
     @FXML private Label dayLabel, allAnimalsLabel, allPlantsLabel, freeFieldsLabel, avgEnergyLabel, avgLifespanLabel, avgChildrenCount;
+    @FXML private VBox animalStatsBox;
+    @FXML private Label noAnimalSelectedLabel;
+    @FXML private Label trackedIdLabel, trackedActiveGeneLabel,
+            trackedEnergyLabel, trackedPlantsLabel, trackedChildrenLabel,
+            trackedDescendantsLabel, trackedAgeLabel, trackedDeathLabel;
+    @FXML private TextArea trackedGenotypeArea;
 
     private double currentZoom = 600.0;
 
@@ -31,6 +41,7 @@ public class SimulationController implements MapChangeListener {
 
     private int currentDayIndex = 0;
     private boolean isLive = true;
+    private UUID trackedAnimalId = null;
 
     private Simulation simulation;
     private WorldMap map;
@@ -43,22 +54,7 @@ public class SimulationController implements MapChangeListener {
         simulation.addListener(this);
 
         if (config != null) {
-            List<SimulationState> history = simulation.getHistory();
-
-            if (!history.isEmpty()) {
-                this.currentDayIndex = history.size() - 1;
-
-                SimulationState initialState = history.get(currentDayIndex);
-
-                drawSystem(initialState);
-
-                 updateStats(initialState.statistics());
-            } else {
-                GraphicsContext gc = simulationCanvas.getGraphicsContext2D();
-                gc.clearRect(0, 0, simulationCanvas.getWidth(), simulationCanvas.getHeight());
-                gc.setFill(Color.LIMEGREEN);
-                gc.fillRect(0, 0, simulationCanvas.getWidth(), simulationCanvas.getHeight());
-            }
+            simulation.step();
         }
     }
 
@@ -66,16 +62,8 @@ public class SimulationController implements MapChangeListener {
     public void initialize() {
         zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             currentZoom = newValue.doubleValue();
-            updateCanvasSize();
             onRedrawNeeded();
         });
-
-        updateCanvasSize();
-    }
-
-    private void updateCanvasSize() {
-        simulationCanvas.setWidth(currentZoom);
-        simulationCanvas.setHeight(currentZoom);
     }
 
     public void setConfig(Config config) {
@@ -101,32 +89,65 @@ public class SimulationController implements MapChangeListener {
 
     @FXML
     private void onRedrawNeeded() {
+        if (simulation == null || config == null) return;
+
         List<SimulationState> history = simulation.getHistory();
-        if (!history.isEmpty() && currentDayIndex < history.size()) {
-            SimulationState state = history.get(currentDayIndex);
-            drawSystem(state);
-            updateStats(state.statistics());
+        if (history.isEmpty()) return;
+
+        double widthInPixels = zoomSlider.getValue();
+
+        if (config.mapWidth() <= 0) {
+            System.err.println("BŁĄD: Szerokość mapy w configu to 0! Ustawiam domyślne 1.");
+            return;
         }
 
+        double cellSize = widthInPixels / config.mapWidth();
+        double heightInPixels = cellSize * config.mapHeight();
+
+        simulationCanvas.setWidth(widthInPixels);
+        simulationCanvas.setHeight(heightInPixels);
+
+        if (Double.isInfinite(heightInPixels) || Double.isNaN(heightInPixels)) {
+            System.err.println("BŁĄD: Wysokość Canvasu wyszła nieskończona!");
+            return;
+        }
+
+        this.cellWidth = cellSize;
+        this.cellHeight = cellSize;
+
+        if (currentDayIndex >= 0 && currentDayIndex < history.size()) {
+            drawSystem(history.get(currentDayIndex));
+        }
     }
 
     private void drawSystem(SimulationState state) {
         GraphicsContext gc = simulationCanvas.getGraphicsContext2D();
-        double size = currentZoom;
 
-        this.cellWidth = size / config.mapWidth();
-        this.cellHeight = size / config.mapHeight();
+        double width = simulationCanvas.getWidth();
+        double height = simulationCanvas.getHeight();
+
+        if (this.cellWidth <= 0) {
+            if (config != null && config.mapWidth() > 0) {
+                this.cellWidth = width / config.mapWidth();
+                this.cellHeight = this.cellWidth;
+
+                height = this.cellWidth * config.mapHeight();
+                simulationCanvas.setHeight(height);
+            } else {
+                return;
+            }
+        }
 
         // Background fill
         gc.setFill(Color.LIMEGREEN);
-        gc.fillRect(0, 0, size, size);
+        gc.fillRect(0, 0, width, height);
 
         if (showGridBox.isSelected()) {
             gc.setStroke(Color.rgb(0, 0, 0, 0.15));
             gc.setLineWidth(1);
 
-            for (double i = 0; i <= size; i += cellWidth) gc.strokeLine(i, 0, i, size);
-            for (double i = 0; i <= size; i += cellHeight) gc.strokeLine(0, i, size, i);
+            for (double i = 0; i <= width; i += cellWidth) gc.strokeLine(i, 0, i, height);
+            for (double i = 0; i <= height; i += cellHeight) gc.strokeLine(0, i, width, i);
         }
 
         for (Vector2d plantPos : state.plantPositions().keySet()) {
@@ -145,6 +166,14 @@ public class SimulationController implements MapChangeListener {
                 gc.setFill(Color.hsb(energyRatio * 120.0, 1.0, 1.0));
 
                 gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+
+                if (trackedAnimalId != null && animalInfo.id() == trackedAnimalId) {
+                    gc.setStroke(Color.WHITE); // lub BLUE
+                    gc.setLineWidth(2);
+                    gc.strokeOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+
+                    updateTrackedAnimalPanel(animalInfo);
+                }
             }
         }
 
@@ -221,7 +250,59 @@ public class SimulationController implements MapChangeListener {
     }
 
     @FXML
-    public void onCanvasClicked() {
+    private void onCanvasClicked(MouseEvent event) {
+        if (simulation == null) return;
+        List<SimulationState> history = simulation.getHistory();
+        if (history.isEmpty()) return;
 
+        double clickX = event.getX();
+        double clickY = event.getY();
+
+        int mapX = (int) (clickX / cellWidth);
+        int mapY = (int) (clickY / cellHeight);
+        Vector2d clickedPosition = new Vector2d(mapX, mapY);
+
+        SimulationState currentState = history.get(currentDayIndex);
+        List<AnimalInfo> animalsOnTile = currentState.animalPositions().get(clickedPosition);
+
+        if (animalsOnTile != null && !animalsOnTile.isEmpty()) {
+            AnimalInfo selected = animalsOnTile.getFirst();
+            startTracking(selected.id());
+        } else {
+             onStopTrackingClicked();
+        }
+    }
+
+    private void startTracking(UUID animalId) {
+        this.trackedAnimalId = animalId;
+        animalStatsBox.setVisible(true);
+        noAnimalSelectedLabel.setVisible(false);
+
+        onRedrawNeeded();
+    }
+
+    @FXML
+    private void onStopTrackingClicked() {
+        this.trackedAnimalId = null;
+        animalStatsBox.setVisible(false);
+        noAnimalSelectedLabel.setVisible(true);
+        onRedrawNeeded();
+    }
+
+    private void updateTrackedAnimalPanel(AnimalInfo info) {
+        trackedIdLabel.setText("ID: " + info.id());
+        trackedGenotypeArea.setText("Genom: " + info.genotype());
+        trackedActiveGeneLabel.setText("Aktywny gen: " + info.activeGene());
+        trackedEnergyLabel.setText("Energia: " + info.energy());
+        trackedPlantsLabel.setText("Zjedzone rośliny: " + info.plantsEaten());
+        trackedChildrenLabel.setText("Dzieci: " + info.childrenCount());
+        trackedDescendantsLabel.setText("Potomkowie: " + info.descendantsCount());
+        trackedAgeLabel.setText("Wiek: " + info.daysLived());
+
+        if (info.deathDay() != null) {
+            trackedDeathLabel.setText("Zmarł w dniu: " + info.deathDay());
+        } else {
+            trackedDeathLabel.setText("");
+        }
     }
 }

@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Genotype {
-    private List<Integer> genes;
+    private final List<Integer> genes;
     private int activeGene;
     private int currentIndex = 0;
     private static final int POSSIBLE_GENES_COUNT = 8;
@@ -74,5 +74,10 @@ public class Genotype {
 
             genes.set(index, newGene);
         }
+    }
+
+    @Override
+    public String toString() {
+        return genes.toString();
     }
 }

@@ -208,7 +208,13 @@ public class Simulation implements Runnable {
                         animal.getPosition(),
                         animal.getEnergy(),
                         animal.getGenotype().toString(),
-                        animal.getId()
+                        animal.getId(),
+                        animal.getGenotype().getActiveGene(),
+                        animal.getEatenPlants(),
+                        animal.getChildrenCount(),
+                        animal.getDescendantsCount(),
+                        animal.getAge(),
+                        animal.getDeathDate()
                 ));
             }
 

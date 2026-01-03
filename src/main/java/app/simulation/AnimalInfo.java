@@ -7,6 +7,12 @@ import java.util.UUID;
 public record AnimalInfo(Vector2d position,
                          int energy,
                          String genotype,
-                         UUID id
+                         UUID id,
+                         int activeGene,
+                         int plantsEaten,
+                         int childrenCount,
+                         int descendantsCount,
+                         int daysLived,
+                         Integer deathDay
 ) {
 }

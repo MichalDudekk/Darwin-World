@@ -16,7 +16,7 @@
         <top>
             <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #444444; -fx-padding: 5;">
                 <Label text="Zoom:" textFill="WHITE" />
-                <Slider fx:id="zoomSlider" min="600" max="3000" value="600" blockIncrement="50" />
+                <Slider fx:id="zoomSlider" min="600" max="2000" value="600" blockIncrement="50" />
                 <Label text="Grid:" textFill="WHITE" />
                 <CheckBox fx:id="showGridBox" selected="true" onAction="#onRedrawNeeded"/>
             </HBox>
@@ -46,13 +46,14 @@
         </bottom>
 
     <right>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="150">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="250">
             <VBox spacing="10" style="-fx-background-color: #f4f4f4;">
                 <padding>
                     <Insets bottom="10" left="10" right="10" top="10" />
                 </padding>
 
-                <VBox spacing="3">
+                <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Statystyki dnia" />
+                <VBox spacing="5">
                     <Label fx:id="dayLabel" text="Dzień: 0" style="-fx-font-weight: bold; -fx-font-size: 16px;"/>
                     <Label fx:id="allAnimalsLabel" text="Zwierzaki: 0" />
                     <Label fx:id="allPlantsLabel" text="Rośliny: 0" />
@@ -60,6 +61,26 @@
                     <Label fx:id="avgEnergyLabel" text="Śr. energia: 0" />
                     <Label fx:id="avgLifespanLabel" text="Śr. dł. życia: 0" />
                     <Label fx:id="avgChildrenCount" text="Śr. il. dzieci: 0" />
+                </VBox>
+
+                <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Śledzony Zwierzak" />
+                <Label fx:id="noAnimalSelectedLabel" text="(Kliknij na zwierzę, by śledzić)" />
+                <VBox fx:id="animalStatsBox" spacing="5" visible="false">
+                    <Label fx:id="trackedIdLabel" text="ID: -" />
+                    <TextArea fx:id="trackedGenotypeArea"
+                              editable="false"
+                              wrapText="true"
+                              prefRowCount="3"
+                              prefWidth="200"
+                              style="-fx-font-family: monospace;"/>
+                    <Label fx:id="trackedActiveGeneLabel" text="Aktywny gen: -" />
+                    <Label fx:id="trackedEnergyLabel" text="Energia: -" />
+                    <Label fx:id="trackedPlantsLabel" text="Zjedzone rośliny: -" />
+                    <Label fx:id="trackedChildrenLabel" text="Dzieci: -" />
+                    <Label fx:id="trackedDescendantsLabel" text="Potomkowie: -" />
+                    <Label fx:id="trackedAgeLabel" text="Wiek: -" />
+                    <Label fx:id="trackedDeathLabel" text="Śmierć: -" textFill="RED"/>
+                    <Button text="Przestań śledzić" onAction="#onStopTrackingClicked"/>
                 </VBox>
             </VBox>
         </ScrollPane>

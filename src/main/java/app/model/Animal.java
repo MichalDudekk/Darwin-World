@@ -16,7 +16,6 @@ public class Animal implements Comparable<Animal>{
     private int deathDate;
     private int eatenPlants;
     private MoveStrategy moveStrategy;
-    private boolean isTracked = false;
     private boolean isDead = false;
 
     public Animal(int energy, Vector2d position,
@@ -52,6 +51,10 @@ public class Animal implements Comparable<Animal>{
         return energy;
     }
 
+    public int getDeathDate() {
+        return deathDate;
+    };
+
     public void setEnergy(int energy) {
         this.energy = energy;
     }
@@ -82,6 +85,10 @@ public class Animal implements Comparable<Animal>{
 
     public Genotype getGenotype() {
         return genotype;
+    }
+
+    public int getEatenPlants() {
+        return eatenPlants;
     }
 
     public Vector2d getDesirableMove(WorldMap map) {

@@ -62,6 +62,9 @@ public class StartMenuController {
             errorLabel.setText("Błąd: Wszystkie pola liczbowe muszą być liczbami całkowitymi!");
         } catch (IllegalArgumentException e) {
             errorLabel.setText("Błąd walidacji: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorLabel.setText("Błąd: " + e.getMessage());
         }
     }
 
