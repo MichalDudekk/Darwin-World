@@ -5,13 +5,15 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.geometry.Insets?>
+
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="app.presenter.SimulationController"
-            prefHeight="700.0" prefWidth="750.0">
+            prefHeight="700.0" prefWidth="955.0">
 
         <top>
             <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #444444; -fx-padding: 5;">
@@ -46,7 +48,7 @@
         </bottom>
 
     <right>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="250">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="350">
             <VBox spacing="10" style="-fx-background-color: #f4f4f4;">
                 <padding>
                     <Insets bottom="10" left="10" right="10" top="10" />
@@ -82,6 +84,19 @@
                     <Label fx:id="trackedDeathLabel" text="Śmierć: -" textFill="RED"/>
                     <Button text="Przestań śledzić" onAction="#onStopTrackingClicked"/>
                 </VBox>
+
+                <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Wykresy statystyk" />
+                <Label text="Wybierz statystykę wykresu:" />
+                <ComboBox fx:id="statSelectionBox" prefWidth="200.0" />
+
+                <LineChart fx:id="statChart" createSymbols="false" animated="false" minHeight="200">
+                    <xAxis>
+                        <NumberAxis label="Dzień" autoRanging="true" forceZeroInRange="false"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis label="Wartość" autoRanging="true" forceZeroInRange="false"/>
+                    </yAxis>
+                </LineChart>
             </VBox>
         </ScrollPane>
     </right>

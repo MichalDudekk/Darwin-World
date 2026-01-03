@@ -17,11 +17,22 @@ import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.ComboBox;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class SimulationController implements MapChangeListener {
+    private static final String STAT_ANIMALS = "Liczba zwierząt";
+    private static final String STAT_PLANTS = "Liczba roślin";
+    private static final String STAT_FREE_FIELDS = "Wolne pola";
+    private static final String STAT_AVG_ENERGY = "Średnia energia";
+    private static final String STAT_AVG_LIFESPAN = "Średnia dł. życia";
+    private static final String STAT_AVG_CHILDREN = "Średnia liczba dzieci";
+
     @FXML private Canvas simulationCanvas;
     @FXML private Label statusLabel;
     @FXML private CheckBox showGridBox;
@@ -33,6 +44,9 @@ public class SimulationController implements MapChangeListener {
             trackedEnergyLabel, trackedPlantsLabel, trackedChildrenLabel,
             trackedDescendantsLabel, trackedAgeLabel, trackedDeathLabel;
     @FXML private TextArea trackedGenotypeArea;
+    @FXML private ComboBox<String> statSelectionBox;
+    @FXML private LineChart<Number, Number> statChart;
+    private XYChart.Series<Number, Number> chartSeries;
 
     private double currentZoom = 600.0;
 
@@ -46,6 +60,9 @@ public class SimulationController implements MapChangeListener {
     private Simulation simulation;
     private WorldMap map;
     private Config config;
+
+    private XYChart.Series<Number, Number> animalSeries;
+    private XYChart.Series<Number, Number> plantSeries;
 
     public void setSimulation(Simulation simulation) {
         this.simulation = simulation;
@@ -64,6 +81,29 @@ public class SimulationController implements MapChangeListener {
             currentZoom = newValue.doubleValue();
             onRedrawNeeded();
         });
+
+        animalStatsBox.managedProperty().bind(animalStatsBox.visibleProperty());
+        noAnimalSelectedLabel.managedProperty().bind(noAnimalSelectedLabel.visibleProperty());
+
+        statSelectionBox.getItems().addAll(
+                STAT_ANIMALS,
+                STAT_PLANTS,
+                STAT_FREE_FIELDS,
+                STAT_AVG_ENERGY,
+                STAT_AVG_LIFESPAN,
+                STAT_AVG_CHILDREN
+        );
+
+        statSelectionBox.getSelectionModel().select(STAT_ANIMALS);
+
+        statSelectionBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            refreshChart();
+        });
+
+        chartSeries = new XYChart.Series<>();
+        statChart.getData().add(chartSeries);
+
+        statChart.setAnimated(false);
     }
 
     public void setConfig(Config config) {
@@ -187,6 +227,60 @@ public class SimulationController implements MapChangeListener {
         avgEnergyLabel.setText("Śr. energia: %.2f".formatted(statistics.averageEnergy()));
         avgLifespanLabel.setText("Śr. dł. życia: %.2f".formatted(statistics.averageLifespan()));
         avgChildrenCount.setText("Śr. il. dzieci: %.2f".formatted(statistics.averageChildrenCount()));
+
+        refreshChart();
+    }
+
+    private void refreshChart() {
+        if (simulation == null) return;
+        List<SimulationState> history = simulation.getHistory();
+        if (history.isEmpty()) return;
+
+        String selectedStat = statSelectionBox.getValue();
+        if (selectedStat == null) return;
+
+        int endIndex = Math.min(currentDayIndex, history.size() - 1);
+        int totalDataPoints = endIndex + 1;
+
+        int step = 1;
+        if (totalDataPoints > 10000) step = 10;
+        else if (totalDataPoints > 5000) step = 5;
+        else if (totalDataPoints > 2000) step = 2;
+
+        boolean isSameStat = chartSeries.getName() != null && chartSeries.getName().equals(selectedStat);
+        boolean isNoDownsampling = (step == 1);
+        boolean isNextDay = (chartSeries.getData().size() == endIndex);
+
+        if (isSameStat && isNoDownsampling && isNextDay) {
+            SimulationState currentState = history.get(endIndex);
+            double value = getStatValue(currentState.statistics(), selectedStat);
+            chartSeries.getData().add(new XYChart.Data<>(endIndex + 1, value));
+
+        } else {
+            chartSeries.setName(selectedStat);
+            ArrayList<XYChart.Data<Number, Number>> dataBuffer = new ArrayList<>();
+
+            for (int i = 0; i <= endIndex; i += step) {
+                SimulationState state = history.get(i);
+                double value = getStatValue(state.statistics(), selectedStat);
+
+                dataBuffer.add(new XYChart.Data<>(i + 1, value));
+            }
+
+            chartSeries.getData().setAll(dataBuffer);
+        }
+    }
+
+    private double getStatValue(Statistics stats, String selectedStat) {
+        return switch (selectedStat) {
+            case STAT_ANIMALS -> stats.animalsCount();
+            case STAT_PLANTS -> stats.plantsCount();
+            case STAT_FREE_FIELDS -> stats.freeFields();
+            case STAT_AVG_ENERGY -> stats.averageEnergy();
+            case STAT_AVG_LIFESPAN -> stats.averageLifespan();
+            case STAT_AVG_CHILDREN -> stats.averageChildrenCount();
+            default -> 0.0;
+        };
     }
 
     @FXML
@@ -208,6 +302,8 @@ public class SimulationController implements MapChangeListener {
         onPauseClicked();
 
         currentDayIndex = 0;
+        SimulationState state = simulation.getHistory().get(currentDayIndex);
+        updateStats(state.statistics());
         onRedrawNeeded();
     }
 
@@ -217,6 +313,9 @@ public class SimulationController implements MapChangeListener {
 
         if (currentDayIndex > 0) {
             currentDayIndex--;
+
+            SimulationState state = simulation.getHistory().get(currentDayIndex);
+            updateStats(state.statistics());
             onRedrawNeeded();
         }
     }
@@ -246,6 +345,8 @@ public class SimulationController implements MapChangeListener {
 
         currentDayIndex = history.size() - 1;
 
+        SimulationState state = simulation.getHistory().getLast();
+        updateStats(state.statistics());
         onRedrawNeeded();
     }
 
