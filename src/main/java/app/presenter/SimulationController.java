@@ -15,11 +15,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
+import javafx.scene.shape.Circle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,12 @@ public class SimulationController implements MapChangeListener {
     private static final String STAT_AVG_LIFESPAN = "Średnia dł. życia";
     private static final String STAT_AVG_CHILDREN = "Średnia liczba dzieci";
 
+    private static final Color COLOR_STEPPE = Color.LIMEGREEN;
+    private static final Color COLOR_JUNGLE = Color.rgb(34, 139, 34); // ForestGreen
+    private static final Color COLOR_PLANT = Color.DARKGREEN;
+
+    private static final double ANIMAL_HUE = 200.0;
+
     @FXML private Canvas simulationCanvas;
     @FXML private Label statusLabel;
     @FXML private CheckBox showGridBox;
@@ -45,6 +53,7 @@ public class SimulationController implements MapChangeListener {
             trackedDescendantsLabel, trackedAgeLabel, trackedDeathLabel;
     @FXML private TextArea trackedGenotypeArea;
     @FXML private ComboBox<String> statSelectionBox;
+    @FXML private HBox legendContainer;
     @FXML private LineChart<Number, Number> statChart;
     private XYChart.Series<Number, Number> chartSeries;
 
@@ -82,6 +91,8 @@ public class SimulationController implements MapChangeListener {
             onRedrawNeeded();
         });
 
+        setupLegend();
+
         animalStatsBox.managedProperty().bind(animalStatsBox.visibleProperty());
         noAnimalSelectedLabel.managedProperty().bind(noAnimalSelectedLabel.visibleProperty());
 
@@ -108,6 +119,38 @@ public class SimulationController implements MapChangeListener {
 
     public void setConfig(Config config) {
         this.config = config;
+    }
+
+    private void setupLegend() {
+        legendContainer.getChildren().clear();
+
+        legendContainer.getChildren().add(createLegendItem(COLOR_STEPPE, "Step"));
+        legendContainer.getChildren().add(createLegendItem(COLOR_JUNGLE, "Dżungla"));
+        legendContainer.getChildren().add(createLegendItem(COLOR_PLANT, "Roślina"));
+
+        legendContainer.getChildren().add(new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL));
+
+        Color weakAnimalColor = Color.hsb(ANIMAL_HUE, 1.0, 0.5);
+        legendContainer.getChildren().add(createLegendItem(weakAnimalColor, "Min Energia"));
+
+        Color strongAnimalColor = Color.hsb(ANIMAL_HUE, 1.0, 1.0);
+        legendContainer.getChildren().add(createLegendItem(strongAnimalColor, "Max Energia"));
+    }
+
+    private HBox createLegendItem(Color color, String labelText) {
+        HBox item = new HBox(5);
+        item.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        Circle icon = new Circle(7);
+        icon.setFill(color);
+        icon.setStroke(Color.GRAY);
+        icon.setStrokeWidth(0.5);
+
+        Label label = new Label(labelText);
+        label.setStyle("-fx-font-size: 11px;");
+
+        item.getChildren().addAll(icon, label);
+        return item;
     }
 
     @Override
@@ -178,9 +221,25 @@ public class SimulationController implements MapChangeListener {
             }
         }
 
-        // Background fill
-        gc.setFill(Color.LIMEGREEN);
-        gc.fillRect(0, 0, width, height);
+        double jungleRatio = 0.2;
+        int mapHeight = config.mapHeight();
+
+        int jungleHeight = (int) (mapHeight * jungleRatio);
+        int jungleStartY = (mapHeight - jungleHeight) / 2;
+        int jungleEndY = jungleStartY + jungleHeight;
+
+        for (int y = 0; y < config.mapHeight(); y++) {
+            for (int x = 0; x < config.mapWidth(); x++) {
+
+                if (y >= jungleStartY && y < jungleEndY) {
+                    gc.setFill(COLOR_JUNGLE);
+                } else {
+                    gc.setFill(COLOR_STEPPE);
+                }
+
+                gc.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            }
+        }
 
         if (showGridBox.isSelected()) {
             gc.setStroke(Color.rgb(0, 0, 0, 0.15));
@@ -191,24 +250,28 @@ public class SimulationController implements MapChangeListener {
         }
 
         for (Vector2d plantPos : state.plantPositions().keySet()) {
-            gc.setFill(Color.FORESTGREEN);
+            gc.setFill(COLOR_PLANT);
             gc.fillRect(plantPos.getX() * cellWidth, plantPos.getY() * cellHeight, cellWidth, cellHeight);
         }
+
+        double currentMaxEnergy = Math.max(1.0, state.statistics().maxEnergy());
 
         for (List<AnimalInfo> animalsOnTile : state.animalPositions().values()) {
             for (AnimalInfo animalInfo : animalsOnTile) {
 
                 int x = animalInfo.position().getX();
                 int y = animalInfo.position().getY();
-                int energy = animalInfo.energy();
 
-                double energyRatio = Math.min(1.0, (double) energy / 100.0);
-                gc.setFill(Color.hsb(energyRatio * 120.0, 1.0, 1.0));
+                double energyRatio = (double) animalInfo.energy() / currentMaxEnergy;
+                energyRatio = Math.min(1.0, Math.max(0.0, energyRatio));
+                double brightness = 0.4 + (0.6 * energyRatio);
+
+                gc.setFill(Color.hsb(ANIMAL_HUE, 1.0, brightness));
 
                 gc.fillOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
 
                 if (trackedAnimalId != null && animalInfo.id() == trackedAnimalId) {
-                    gc.setStroke(Color.WHITE); // lub BLUE
+                    gc.setStroke(Color.WHITE);
                     gc.setLineWidth(2);
                     gc.strokeOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
 

@@ -57,8 +57,6 @@ public class StartMenuController {
 
             createNewSimulation(config);
 
-            // TODO: Po odpaleniu kilka razy symulacji się sypie
-
         } catch (NumberFormatException e) {
             errorLabel.setText("Błąd: Wszystkie pola liczbowe muszą być liczbami całkowitymi!");
         } catch (IllegalArgumentException e) {
