@@ -1,23 +1,25 @@
 package app.presenter;
 
 import app.shared.Config;
+import app.simulation.ConfigPreset;
 import app.simulation.ConfigurationManager;
 import app.simulation.Simulation;
 import app.simulation.SimulationEngine;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StartMenuController {
+    @FXML private ComboBox<ConfigPreset> presetComboBox;
     @FXML private TextField configNameField;
     @FXML private Label configInfo;
 
@@ -44,6 +46,54 @@ public class StartMenuController {
 
     private final SimulationEngine simulationEngine = new SimulationEngine();
     private ConfigurationManager configManager;
+
+    @FXML
+    public void initialize() {
+        this.configManager = new ConfigurationManager("configs", configInfo);
+
+        loadPresets();
+
+        presetComboBox.setOnAction(event -> {
+            ConfigPreset selected = presetComboBox.getValue();
+            if (selected != null) {
+                updateGuiFromParams(selected.config());
+                configInfo.setText("Wczytano preset: " + selected);
+            }
+        });
+    }
+
+    private void loadPresets() {
+        List<ConfigPreset> presets = new ArrayList<>();
+
+        presets.add(new ConfigPreset("Standardowy (20x20)", new Config(
+                20, 20, 15, 5, 10, 2, 15, 1, 20, 10, 5, 0, 2, 5, false, 5, 3
+        )));
+
+        presets.add(new ConfigPreset("Gigant (50x50)", new Config(
+                50, 50, 100, 5, 10, 10, 80, 2, 50, 20, 10, 0, 5, 8, false, 5, 3
+        )));
+
+        presets.add(new ConfigPreset("Walka o przetrwanie", new Config(
+                15, 15, 5, 2, 5, 1, 20, 5, 30, 25, 10, 2, 6, 10, true, 5, 5
+        )));
+
+        File folder = new File("./configs");
+        File[] configFiles = folder.listFiles((dir, name) -> name.endsWith(".json"));
+
+        if (configFiles != null) {
+            for (File file : configFiles) {
+                try {
+                    Config loadedConfig = loadConfigFromFile(file.getName());
+
+                    presets.add(new ConfigPreset("Plik: " + file.getName(), loadedConfig));
+                } catch (Exception e) {
+                    System.err.println("Nie udało się wczytać presetu: " + file.getName());
+                }
+            }
+        }
+
+        presetComboBox.getItems().setAll(presets);
+    }
 
     @FXML
     private void onStartClicked() {
@@ -99,27 +149,18 @@ public class StartMenuController {
     }
 
     @FXML
-    public void initialize() {
-        this.configManager = new ConfigurationManager("configs", configInfo);
-    }
-
-    @FXML
     private void onSaveConfigClicked() {
         try {
             Config currentConfig = getConfig();
             configManager.saveConfig(currentConfig, configNameField.getText());
+            loadPresets();
         } catch (Exception e) {
             errorLabel.setText("Błąd zapisu %s%n".formatted(e.getMessage()));
         }
     }
 
-    @FXML
-    private void onLoadConfigClicked() {
-        Config loadedConfig = configManager.loadConfig(configNameField.getText());
-
-        if (loadedConfig != null) {
-            updateGuiFromParams(loadedConfig);
-        }
+    private Config loadConfigFromFile(String configName) {
+        return configManager.loadConfig(configName);
     }
 
     private void updateGuiFromParams(Config config) {
