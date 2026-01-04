@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.canvas.Canvas?>
-<?import javafx.geometry.Insets?>
 <?import java.net.URL?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
@@ -38,7 +34,7 @@
     </top>
 
     <center>
-        <ScrollPane fx:id="mapScrollPane" fitToHeight="true" fitToWidth="true" pannable="true" styleClass="map-scroll-pane">
+        <ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" styleClass="map-scroll-pane">
             <StackPane>
                 <VBox alignment="CENTER" styleClass="map-container">
                     <Canvas fx:id="simulationCanvas" height="600.0" width="600.0" onMouseClicked="#onCanvasClicked" />
@@ -57,8 +53,8 @@
 
                 <Separator orientation="VERTICAL" />
 
-                <Button fx:id="pauseButton" text="PAUZA ||" onAction="#onPauseClicked" prefWidth="100" styleClass="control-button, pause-button"/>
-                <Button fx:id="playButton" text="START ▶" onAction="#onResumeClicked" prefWidth="100" styleClass="control-button, play-button"/>
+                <Button text="PAUZA ||" onAction="#onPauseClicked" prefWidth="100" styleClass="control-button, pause-button"/>
+                <Button text="START ▶" onAction="#onResumeClicked" prefWidth="100" styleClass="control-button, play-button"/>
 
                 <Separator orientation="VERTICAL" />
 
@@ -69,7 +65,7 @@
     </bottom>
 
     <right>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" prefWidth="400" style="-fx-background-color: transparent;">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="400" style="-fx-background-color: transparent;">
             <VBox spacing="15" styleClass="sidebar">
 
                 <VBox spacing="10" styleClass="card">
@@ -139,7 +135,7 @@
                         <Label fx:id="trackedPlantsLabel" text="Zjedzone: -" styleClass="stat-label"/>
                         <Label fx:id="trackedDescendantsLabel" text="Potomkowie: -" styleClass="stat-label"/>
 
-                        <Label fx:id="trackedDeathLabel" text="" style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;"/>
+                        <Label fx:id="trackedDeathLabel" style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;"/>
 
                         <Button text="Zakończ śledzenie" onAction="#onStopTrackingClicked" maxWidth="Infinity" styleClass="control-button"/>
                     </VBox>
@@ -152,10 +148,10 @@
 
                     <LineChart fx:id="statChart" createSymbols="false" animated="false" minHeight="200" legendVisible="false">
                         <xAxis>
-                            <NumberAxis label="Dzień" autoRanging="true" forceZeroInRange="false"/>
+                            <NumberAxis label="Dzień" forceZeroInRange="false"/>
                         </xAxis>
                         <yAxis>
-                            <NumberAxis autoRanging="true" forceZeroInRange="false"/>
+                            <NumberAxis forceZeroInRange="false"/>
                         </yAxis>
                     </LineChart>
                 </VBox>

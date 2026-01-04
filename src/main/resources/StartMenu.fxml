@@ -37,10 +37,10 @@
         <TitledPane text="Ustawienia Mapy" collapsible="false" styleClass="custom-titled-pane">
             <GridPane hgap="15" vgap="15">
                 <Label text="Szerokość:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <Spinner fx:id="mapWidthSpinner" min="10" max="50" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Spinner fx:id="mapWidthSpinner" min="15" max="50" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
                 <Label text="Wysokość:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <Spinner fx:id="mapHeightSpinner" min="10" max="50" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Spinner fx:id="mapHeightSpinner" min="15" max="50" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
             </GridPane>
         </TitledPane>
 

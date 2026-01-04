@@ -54,7 +54,7 @@ public class StartMenuController {
 
     @FXML
     public void initialize() {
-        this.configManager = new ConfigurationManager("configs", configInfo);
+        this.configManager = new ConfigurationManager("configs");
 
         loadPresets();
 
@@ -62,6 +62,7 @@ public class StartMenuController {
             ConfigPreset selected = presetComboBox.getValue();
             if (selected != null) {
                 updateGuiFromParams(selected.config());
+                configInfo.setTextFill(Color.GREEN);
                 configInfo.setText("Wczytano preset: " + selected);
             }
         });
@@ -131,6 +132,7 @@ public class StartMenuController {
         simulationStage.setOnCloseRequest(event -> {
             System.out.println("Zamykanie symulacji ID: " + simulation.getId());
             simulation.end();
+
         });
     }
 
@@ -170,8 +172,12 @@ public class StartMenuController {
 
         if (configFiles != null) {
             for (File file : configFiles) {
-                Config loadedConfig = configManager.loadConfig(file.getName());
-                userPresets.add(new ConfigPreset("Plik: " + file.getName(), loadedConfig));
+                try {
+                    Config loadedConfig = configManager.loadConfig(file.getName());
+                    userPresets.add(new ConfigPreset("Plik: " + file.getName(), loadedConfig));
+                } catch (IOException e) {
+                    errorLabel.setText("Ignoruję uszkodzony plik konfiguracyjny: " + file.getName());
+                }
             }
         }
         return userPresets;

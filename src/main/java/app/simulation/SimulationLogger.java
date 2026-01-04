@@ -7,8 +7,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class SimulationLogger {
-    private BufferedWriter writer;
     private static final String SEPARATOR = ";";
+
+    private BufferedWriter writer;
+
+    // CONSTRUCTOR //
 
     public SimulationLogger(String prefix) {
         try {
@@ -26,28 +29,13 @@ public class SimulationLogger {
         }
     }
 
-    private void writeHeader() throws IOException {
-        if (writer == null) return;
-        writer.write("Dzien" + SEPARATOR);
-        writer.write("Zwierzeta" + SEPARATOR);
-        writer.write("Rosliny" + SEPARATOR);
-        writer.write("Wolne_Pola" + SEPARATOR);
-        writer.write("Sr_Energia" + SEPARATOR);
-        writer.write("Sr_Zycie" + SEPARATOR);
-        writer.write("Sr_Dzieci" + SEPARATOR);
-        writer.write("Top_Genotyp");
-        writer.newLine();
-        writer.flush();
-    }
+    // PUBLIC API //
 
     public void logDay(int day, Statistics stats) {
         if (writer == null) return;
 
         try {
-            String topGenotype = "-";
-            if (stats.topGenotypes() != null && !stats.topGenotypes().isEmpty()) {
-                topGenotype = stats.topGenotypes().getFirst().getKey();
-            }
+            String topGenotype = extractTopGenotype(stats);
 
             String line = String.format("%d%s%d%s%d%s%d%s%.2f%s%.2f%s%.2f%s%s",
                     day, SEPARATOR,
@@ -79,5 +67,28 @@ public class SimulationLogger {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    // HELPER METHODS //
+
+    private void writeHeader() throws IOException {
+        if (writer == null) return;
+        writer.write("Dzien" + SEPARATOR);
+        writer.write("Zwierzeta" + SEPARATOR);
+        writer.write("Rosliny" + SEPARATOR);
+        writer.write("Wolne_Pola" + SEPARATOR);
+        writer.write("Sr_Energia" + SEPARATOR);
+        writer.write("Sr_Zycie" + SEPARATOR);
+        writer.write("Sr_Dzieci" + SEPARATOR);
+        writer.write("Top_Genotyp");
+        writer.newLine();
+        writer.flush();
+    }
+
+    private String extractTopGenotype(Statistics stats) {
+        if (stats.topGenotypes() != null && !stats.topGenotypes().isEmpty()) {
+            return stats.topGenotypes().getFirst().getKey();
+        }
+        return "-";
     }
 }

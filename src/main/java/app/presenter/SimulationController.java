@@ -40,6 +40,7 @@ public class SimulationController implements MapChangeListener {
     private static final double ANIMAL_HUE = 200.0;
     private static final double MIN_BRIGHTNESS = 0.4;
     private static final double BRIGHTNESS_RANGE = 0.6;
+    private static final double MAX_CANVAS_DIMENSION = 16000.0;
 
     @FXML private VBox animalStatsBox;
     @FXML private VBox genotypeListContainer;

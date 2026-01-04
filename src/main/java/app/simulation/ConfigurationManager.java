@@ -10,73 +10,55 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javafx.scene.control.Label;
-import javafx.scene.paint.Color;
 
 public class ConfigurationManager {
     private final String folderPath;
     private final Gson gson;
-    private final Label infoField;
 
-    public ConfigurationManager(String folderPath, Label infoField) {
+    // CONSTRUCTOR //
+
+    public ConfigurationManager(String folderPath)  {
         this.folderPath = folderPath;
         this.gson = new GsonBuilder().setPrettyPrinting().create();
-        this.infoField = infoField;
     }
 
-    private void createConfigFolder() {
-        try {
-            Path path = Paths.get(folderPath);
-            if (!Files.exists(path)) {
-                Files.createDirectories(path);
-            }
-        } catch (IOException e) {
-            infoField.setTextFill(Color.RED);
-            infoField.setText("Nie udało się utworzyć folderu konfiguracji: " + e.getMessage());
-        }
-    }
+    // PUBLIC API //
 
-    public void saveConfig(Config config, String filename) {
-        createConfigFolder();
+    public void saveConfig(Config config, String filename) throws IOException {
+        ensureConfigFolderExists();
 
-        if (!filename.endsWith(".json")) {
-            filename += ".json";
-        }
+        Path filePath = resolveFilePath(filename);
 
-        String fullPath = folderPath + "/" + filename;
-
-        try (FileWriter writer = new FileWriter(fullPath)) {
+        try (FileWriter writer = new FileWriter(filePath.toFile())) {
             gson.toJson(config, writer);
-            infoField.setTextFill(Color.GREEN);
-            infoField.setText("Zapisano konfiguracje do: %s".formatted(fullPath));
-        } catch (IOException e) {
-            infoField.setTextFill(Color.RED);
-            infoField.setText("Błąd zapisu konfiguracji: %s".formatted(e.getMessage()));
         }
     }
 
-    public Config loadConfig(String filename) {
+    public Config loadConfig(String filename) throws IOException {
+        Path filePath = resolveFilePath(filename);
+
+        if (!Files.exists(filePath)) {
+            throw new IOException("Plik nie istnieje: " + filePath);
+        }
+
+        try (FileReader reader = new FileReader(filePath.toFile())) {
+            return gson.fromJson(reader, Config.class);
+        }
+    }
+
+    // HELPER METHODS //
+
+    private void ensureConfigFolderExists() throws IOException {
+        Path path = Paths.get(folderPath);
+        if (!Files.exists(path)) {
+            Files.createDirectories(path);
+        }
+    }
+
+    private Path resolveFilePath(String filename) {
         if (!filename.endsWith(".json")) {
             filename += ".json";
         }
-
-        String fullPath = folderPath + "/" + filename;
-
-        try (FileReader reader = new FileReader(fullPath)) {
-            Config read = gson.fromJson(reader, Config.class);
-
-            infoField.setTextFill(Color.GREEN);
-            infoField.setText("Wczytano konfiguracje z: %s".formatted(fullPath));
-
-            return read;
-        } catch (IOException e) {
-            infoField.setTextFill(Color.RED);
-            infoField.setText("Błąd odczytu konfiguracji: %s".formatted(e.getMessage()));
-            return null;
-        }
-    }
-
-    public String getFolderPath() {
-        return folderPath;
+        return Paths.get(folderPath, filename);
     }
 }

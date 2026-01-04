@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Simulation implements Runnable {
+    private static final String SIMULATION_LOGGER_FILE_PREFIX = "./statistics/statystyki";
+
     private final UUID id = UUID.randomUUID();
     private final Config config;
     private final AbstractWorldMap map;
@@ -24,7 +26,7 @@ public class Simulation implements Runnable {
     public Simulation(Config config) {
         this.config = config;
         this.map = new GlobeMap(config, generateAnimals());
-        this.logger = new SimulationLogger("statystyki");
+        this.logger = new SimulationLogger(SIMULATION_LOGGER_FILE_PREFIX);
     }
 
     // PUBLIC API //
