@@ -9,13 +9,11 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Ładowanie pliku FXML
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/StartMenu.fxml"));
 
-        // Tworzenie sceny
-        Scene scene = new Scene(loader.load(), 500, 700); // Wymiary okna
+        Scene scene = new Scene(loader.load(), 500, 700);
 
-        primaryStage.setTitle("Evolution Generator - Konfiguracja");
+        primaryStage.setTitle("Konfiguracja symulacji");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
