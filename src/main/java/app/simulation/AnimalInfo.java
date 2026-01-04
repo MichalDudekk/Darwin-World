@@ -12,7 +12,6 @@ public record AnimalInfo(Vector2d position,
                          int plantsEaten,
                          int childrenCount,
                          int descendantsCount,
-                         int daysLived,
-                         Integer deathDay
+                         int daysLived
 ) {
 }

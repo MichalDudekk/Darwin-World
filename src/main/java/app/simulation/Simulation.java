@@ -11,7 +11,7 @@ public class Simulation implements Runnable {
     private final Config config;
     private final AbstractWorldMap map;
     private final List<SimulationState> history = new ArrayList<>();
-//    private final StatisticsLogger statisticsLogger;
+    private final SimulationLogger logger;
     private final List<MapChangeListener> listeners = new ArrayList<>();
     private LifespanStats accumulatedLifespanStats = new LifespanStats(0, 0);
 
@@ -21,6 +21,7 @@ public class Simulation implements Runnable {
     public Simulation(Config config) {
         this.config = config;
         this.map = new GlobeMap(config, generateAnimals());
+        this.logger = new SimulationLogger("statystyki");
     }
 
     private void notifyListeners() {
@@ -110,9 +111,9 @@ public class Simulation implements Runnable {
         map.growPlants();
         map.dayPassed();
 
-        saveSimulationState();
-
         notifyListeners();
+        SimulationState simulationState = saveSimulationState();
+        logger.logDay(map.getDaysElapsed(), simulationState.statistics());
     }
 
     public void step() {
@@ -142,7 +143,7 @@ public class Simulation implements Runnable {
         );
     }
 
-    private void saveSimulationState() {
+    private SimulationState saveSimulationState() {
         List<Animal> allAnimals = map.getAnimals();
         Map<Vector2d, List<Animal>> currentAnimalsMap = map.getFields();
         Map<Vector2d, Plant> currentPlantsMap = map.getPlants();
@@ -226,8 +227,7 @@ public class Simulation implements Runnable {
                         animal.getEatenPlants(),
                         animal.getChildrenCount(),
                         animal.getDescendantsCount(),
-                        animal.getAge(),
-                        animal.getDeathDate()
+                        animal.getAge()
                 ));
             }
 
@@ -245,6 +245,7 @@ public class Simulation implements Runnable {
         );
 
         this.history.add(newState);
+        return newState;
     }
 
     public synchronized void pause() {
@@ -259,6 +260,7 @@ public class Simulation implements Runnable {
     public void end() {
         isRunning = false;
         resume();
+        logger.close();
     }
 
 }

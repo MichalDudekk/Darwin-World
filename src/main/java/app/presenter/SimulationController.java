@@ -56,25 +56,19 @@ public class SimulationController implements MapChangeListener {
     @FXML private VBox genotypeListContainer;
     private XYChart.Series<Number, Number> chartSeries;
 
-    private double currentZoom = 600.0;
-
     private double cellWidth;
     private double cellHeight;
 
     private int currentDayIndex = 0;
     private boolean isLive = true;
-    private UUID trackedAnimalId = null;
+    private UUID trackedAnimalId;
+    private Integer cachedDeathDate = null;
 
     private Simulation simulation;
-    private WorldMap map;
     private Config config;
-
-    private XYChart.Series<Number, Number> animalSeries;
-    private XYChart.Series<Number, Number> plantSeries;
 
     public void setSimulation(Simulation simulation) {
         this.simulation = simulation;
-        this.map = simulation.getMap();
 
         simulation.addListener(this);
 
@@ -85,10 +79,7 @@ public class SimulationController implements MapChangeListener {
 
     @FXML
     public void initialize() {
-        zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            currentZoom = newValue.doubleValue();
-            onRedrawNeeded();
-        });
+        zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> onRedrawNeeded());
 
         setupLegend();
 
@@ -106,9 +97,7 @@ public class SimulationController implements MapChangeListener {
 
         statSelectionBox.getSelectionModel().select(STAT_ANIMALS);
 
-        statSelectionBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            refreshChart();
-        });
+        statSelectionBox.valueProperty().addListener((obs, oldVal, newVal) -> refreshChart());
 
         chartSeries = new XYChart.Series<>();
         statChart.getData().add(chartSeries);
@@ -272,6 +261,9 @@ public class SimulationController implements MapChangeListener {
             dominantGenotype = state.statistics().topGenotypes().getFirst().getKey();
         }
 
+        // Check whether tracked animal is dead
+        boolean isTrackedAlive = false;
+
         for (List<AnimalInfo> animalsOnTile : state.animalPositions().values()) {
             for (AnimalInfo animalInfo : animalsOnTile) {
 
@@ -298,12 +290,32 @@ public class SimulationController implements MapChangeListener {
                     gc.strokeOval(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
 
                     updateTrackedAnimalPanel(animalInfo);
+                    isTrackedAlive = true;
                 }
             }
         }
 
+        if (trackedAnimalId != null && !isTrackedAlive) {
+            handleDeadAnimal();
+        }
+
         // 6. Wypisanie obecnego dnia
         dayLabel.setText("Dzień: %s".formatted(currentDayIndex + 1));
+    }
+
+    private void handleDeadAnimal() {
+        if (cachedDeathDate == null) {
+            cachedDeathDate = findDeathDate();
+        }
+
+        if (cachedDeathDate != null) {
+            trackedDeathLabel.setText("Zmarł w dniu: " + cachedDeathDate);
+            trackedEnergyLabel.setText("0");
+            trackedActiveGeneLabel.setText("Aktywny gen: -");
+        } else {
+            trackedDeathLabel.setText("Nie ma na mapie");
+            trackedEnergyLabel.setText("-");
+        }
     }
 
     private void updateStats(Statistics statistics) {
@@ -495,11 +507,30 @@ public class SimulationController implements MapChangeListener {
     }
 
     private void startTracking(UUID animalId) {
+        this.cachedDeathDate = null;
         this.trackedAnimalId = animalId;
         animalStatsBox.setVisible(true);
         noAnimalSelectedLabel.setVisible(false);
 
         onRedrawNeeded();
+    }
+
+    private Integer findDeathDate() {
+        List<SimulationState> history = simulation.getHistory();
+
+        for (int i = currentDayIndex - 1; i >= 0; i--) {
+            SimulationState state = history.get(i);
+
+            for (List<AnimalInfo> animals : state.animalPositions().values()) {
+                for (AnimalInfo animal : animals) {
+                    if (animal.id().equals(trackedAnimalId)) {
+                        return i + 2;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     @FXML
@@ -519,11 +550,6 @@ public class SimulationController implements MapChangeListener {
         trackedChildrenLabel.setText(String.valueOf(info.childrenCount()));
         trackedDescendantsLabel.setText("Potomkowie: " + info.descendantsCount());
         trackedAgeLabel.setText(String.valueOf(info.daysLived()));
-
-        if (info.deathDay() != null) {
-            trackedDeathLabel.setText("Zmarł w dniu: " + info.deathDay());
-        } else {
-            trackedDeathLabel.setText("");
-        }
+        trackedDeathLabel.setText("");
     }
 }

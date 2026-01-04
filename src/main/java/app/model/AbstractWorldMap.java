@@ -51,8 +51,6 @@ public abstract class AbstractWorldMap implements WorldMap {
             Animal animal = iterator.next();
             if (animal.getEnergy() <= 0) {
                 iterator.remove();
-                animal.setIsDead(true);
-                animal.setDeathDate(daysElapsed);
                 fields.get(animal.getPosition()).remove(animal); // removing from fields too
                 deadAnimals.add(animal);
             }

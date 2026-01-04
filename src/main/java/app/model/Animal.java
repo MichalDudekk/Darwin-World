@@ -13,10 +13,8 @@ public class Animal implements Comparable<Animal>{
     private final Set<Animal> children = new HashSet<>();
     private MapDirection direction;
     private final Genotype genotype;
-    private int deathDate;
     private int eatenPlants;
     private MoveStrategy moveStrategy;
-    private boolean isDead = false;
 
     public Animal(int energy, Vector2d position,
                   MapDirection direction, Genotype genotype, MoveStrategy moveStrategy) {
@@ -31,16 +29,8 @@ public class Animal implements Comparable<Animal>{
         return position;
     }
 
-    public boolean getIsDead() {
-        return isDead;
-    }
-
     public void setPosition(Vector2d position) {
         this.position = position;
-    }
-
-    public void setDeathDate(int deathDate) {
-        this.deathDate = deathDate;
     }
 
     public void setMoveStrategy(MoveStrategy moveStrategy) {
@@ -50,10 +40,6 @@ public class Animal implements Comparable<Animal>{
     public int getEnergy() {
         return energy;
     }
-
-    public int getDeathDate() {
-        return deathDate;
-    };
 
     public void setEnergy(int energy) {
         this.energy = energy;
@@ -65,10 +51,6 @@ public class Animal implements Comparable<Animal>{
 
     public void setDirection(MapDirection direction) {
         this.direction = direction;
-    }
-
-    public void setIsDead(boolean isDead) {
-        this.isDead = isDead;
     }
 
     public int getAge() {
