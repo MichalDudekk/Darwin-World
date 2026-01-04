@@ -10,6 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StartMenuController {
+    private static final String CONFIG_DIR_PATH = "./configs";
+
     @FXML private ComboBox<ConfigPreset> presetComboBox;
     @FXML private TextField configNameField;
     @FXML private Label configInfo;
@@ -47,6 +50,8 @@ public class StartMenuController {
     private final SimulationEngine simulationEngine = new SimulationEngine();
     private ConfigurationManager configManager;
 
+    // INITIALIZATION //
+
     @FXML
     public void initialize() {
         this.configManager = new ConfigurationManager("configs", configInfo);
@@ -62,105 +67,138 @@ public class StartMenuController {
         });
     }
 
-    private void loadPresets() {
-        List<ConfigPreset> presets = new ArrayList<>();
-
-        presets.add(new ConfigPreset("Standardowy (20x20)", new Config(
-                20, 20, 15, 5, 10, 2, 15, 1, 20, 10, 5, 0, 2, 5, false, 5, 3
-        )));
-
-        presets.add(new ConfigPreset("Gigant (50x50)", new Config(
-                50, 50, 100, 5, 10, 10, 80, 2, 50, 20, 10, 0, 5, 8, false, 5, 3
-        )));
-
-        presets.add(new ConfigPreset("Walka o przetrwanie", new Config(
-                15, 15, 5, 2, 5, 1, 20, 5, 30, 25, 10, 2, 6, 10, true, 5, 5
-        )));
-
-        File folder = new File("./configs");
-        File[] configFiles = folder.listFiles((dir, name) -> name.endsWith(".json"));
-
-        if (configFiles != null) {
-            for (File file : configFiles) {
-                try {
-                    Config loadedConfig = loadConfigFromFile(file.getName());
-
-                    presets.add(new ConfigPreset("Plik: " + file.getName(), loadedConfig));
-                } catch (Exception e) {
-                    System.err.println("Nie udało się wczytać presetu: " + file.getName());
-                }
-            }
-        }
-
-        presetComboBox.getItems().setAll(presets);
-    }
+    // FXML HANDLERS //
 
     @FXML
     private void onStartClicked() {
+        Config config;
+
         try {
-            Config config = getConfig();
+            config = getConfig();
+        } catch (Exception e) {
+            errorLabel.setText("Błąd konfiguracji: " + e.getMessage());
+            return;
+        }
 
-            System.out.println("--- Simulation configured ---");
-            System.out.printf("Map: %sx%s%n", config.mapWidth(), config.mapHeight());
-            System.out.println("FOMO Mode: " + config.isFomo());
-            System.out.println("Params Object: " + config);
-
+        try {
             createNewSimulation(config);
-
-        } catch (NumberFormatException e) {
-            errorLabel.setText("Błąd: Wszystkie pola liczbowe muszą być liczbami całkowitymi!");
-        } catch (IllegalArgumentException e) {
-            errorLabel.setText("Błąd walidacji: " + e.getMessage());
+            errorLabel.setText("");
         } catch (Exception e) {
             e.printStackTrace();
-            errorLabel.setText("Błąd: " + e.getMessage());
+            errorLabel.setText("Błąd startu symulacji: " + e.getMessage());
         }
-    }
-
-    private void createNewSimulation(Config config) {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/SimulationView.fxml"));
-
-        try {
-            BorderPane root = fxmlLoader.load();
-
-            SimulationController presenter = fxmlLoader.getController();
-
-            Simulation simulation = new Simulation(config);
-
-            Stage simulationStage = new Stage();
-            simulationStage.setTitle("Symulacja ID: " + simulation.getId());
-            simulationStage.setScene(new Scene(root));
-            simulationStage.show();
-
-            presenter.setConfig(config);
-            presenter.setSimulation(simulation);
-
-            simulationEngine.runAsync(simulation);
-
-            simulationStage.setOnCloseRequest((WindowEvent event) -> {
-                simulation.end();
-            });
-
-        } catch (IOException e) {
-            errorLabel.setText("Błąd podczas tworzenia symualcji: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-
     }
 
     @FXML
     private void onSaveConfigClicked() {
+        String configName = configNameField.getText().trim();
+
+        if (configName.isEmpty()) {
+            configInfo.setTextFill(Color.RED);
+            configInfo.setText("Podaj nazwę konfiguracji przed zapisem!");
+            return;
+        }
+
         try {
             Config currentConfig = getConfig();
-            configManager.saveConfig(currentConfig, configNameField.getText());
+            configManager.saveConfig(currentConfig, configName);
             loadPresets();
         } catch (Exception e) {
+            e.printStackTrace();
             errorLabel.setText("Błąd zapisu %s%n".formatted(e.getMessage()));
         }
     }
 
-    private Config loadConfigFromFile(String configName) {
-        return configManager.loadConfig(configName);
+    // APP LOGIC //
+
+    private void createNewSimulation(Config config) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/SimulationView.fxml"));
+        BorderPane root = fxmlLoader.load();
+
+        SimulationController presenter = fxmlLoader.getController();
+        Simulation simulation = new Simulation(config);
+
+        Stage simulationStage = new Stage();
+        simulationStage.setTitle("Symulacja ID: " + simulation.getId());
+        simulationStage.setScene(new Scene(root));
+
+        presenter.setConfig(config);
+        presenter.setSimulation(simulation);
+
+        simulationEngine.runAsync(simulation);
+        simulationStage.show();
+
+        simulationStage.setOnCloseRequest(event -> {
+            System.out.println("Zamykanie symulacji ID: " + simulation.getId());
+            simulation.end();
+        });
+    }
+
+    private void loadPresets() {
+        List<ConfigPreset> presets = new ArrayList<>();
+        presets.addAll(createDefaultPresets());
+        presets.addAll(loadUserPresets());
+
+        presetComboBox.getItems().setAll(presets);
+    }
+
+    // DATA HELPERS //
+
+    private List<ConfigPreset> createDefaultPresets() {
+        return List.of(
+                new ConfigPreset("Standardowy (20x20)", new Config(
+                        20, 20, 15, 5, 10, 2, 15, 1, 20, 10, 5, 0, 2, 5, false, 5, 3
+                )),
+                new ConfigPreset("Gigant (50x50)", new Config(
+                        50, 50, 100, 5, 10, 10, 80, 2, 50, 20, 10, 0, 5, 8, false, 5, 3
+                )),
+                new ConfigPreset("Walka o przetrwanie", new Config(
+                        15, 15, 5, 2, 5, 1, 20, 5, 30, 25, 10, 2, 6, 10, true, 5, 5
+                ))
+        );
+    }
+
+    private List<ConfigPreset> loadUserPresets() {
+        List<ConfigPreset> userPresets = new ArrayList<>();
+        File folder = new File(CONFIG_DIR_PATH);
+
+        if (!folder.exists() || !folder.isDirectory()) {
+            return userPresets;
+        }
+
+        File[] configFiles = folder.listFiles((dir, name) -> name.endsWith(".json"));
+
+        if (configFiles != null) {
+            for (File file : configFiles) {
+                Config loadedConfig = configManager.loadConfig(file.getName());
+                userPresets.add(new ConfigPreset("Plik: " + file.getName(), loadedConfig));
+            }
+        }
+        return userPresets;
+    }
+
+    // UI HELPERS //
+
+    private Config getConfig() {
+        return new Config(
+                mapWidthSpinner.getValue(),
+                mapHeightSpinner.getValue(),
+                initialPlantsNumSpinner.getValue(),
+                plantMinEnergySpinner.getValue(),
+                plantMaxEnergySpinner.getValue(),
+                dailyPlantGrowthSpinner.getValue(),
+                initialAnimalsNumSpinner.getValue(),
+                animalEnergyLossSpinner.getValue(),
+                animalStartEnergySpinner.getValue(),
+                energyNeededToReproduceSpinner.getValue(),
+                energyUsedToReproduceSpinner.getValue(),
+                minMutationsSpinner.getValue(),
+                maxMutationsSpinner.getValue(),
+                genomeLengthSpinner.getValue(),
+                isFomoCheckBox.isSelected(),
+                fomoRadiusSpinner.getValue(),
+                fomoCrowdSizeSpinner.getValue()
+        );
     }
 
     private void updateGuiFromParams(Config config) {
@@ -173,7 +211,7 @@ public class StartMenuController {
         setSpinnerValue(dailyPlantGrowthSpinner, config.dailyPlantGrowth());
 
         setSpinnerValue(initialAnimalsNumSpinner, config.initialAnimalsNum());
-        setSpinnerValue(animalStartEnergySpinner, config.animalStartEnergy()); // Dodałem to, bo brakowało w Twojej liście (był duplikat animalsNum)
+        setSpinnerValue(animalStartEnergySpinner, config.animalStartEnergy());
         setSpinnerValue(animalEnergyLossSpinner, config.animalEnergyLoss());
         setSpinnerValue(energyNeededToReproduceSpinner, config.energyNeededToReproduce());
         setSpinnerValue(energyUsedToReproduceSpinner, config.energyUsedToReproduce());
@@ -189,31 +227,5 @@ public class StartMenuController {
 
     private void setSpinnerValue(Spinner<Integer> spinner, int value) {
         spinner.getValueFactory().setValue(value);
-    }
-
-    private int getInt(Spinner<Integer> spinner) {
-        return spinner.getValue();
-    }
-
-    private Config getConfig() {
-        return new Config(
-                getInt(mapWidthSpinner),
-                getInt(mapHeightSpinner),
-                getInt(initialPlantsNumSpinner),
-                getInt(plantMinEnergySpinner),
-                getInt(plantMaxEnergySpinner),
-                getInt(dailyPlantGrowthSpinner),
-                getInt(initialAnimalsNumSpinner),
-                getInt(animalEnergyLossSpinner),
-                getInt(animalStartEnergySpinner),
-                getInt(energyNeededToReproduceSpinner),
-                getInt(energyUsedToReproduceSpinner),
-                getInt(minMutationsSpinner),
-                getInt(maxMutationsSpinner),
-                getInt(genomeLengthSpinner),
-                isFomoCheckBox.isSelected(),
-                getInt(fomoRadiusSpinner),
-                getInt(fomoCrowdSizeSpinner)
-        );
     }
 }
