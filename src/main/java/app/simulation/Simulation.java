@@ -17,6 +17,9 @@ public class Simulation implements Runnable {
 
     private volatile boolean isRunning = true;
     private volatile boolean isPaused = true;
+    private boolean stepRequest = false;
+
+    // CONSTRUCTOR //
 
     public Simulation(Config config) {
         this.config = config;
@@ -24,11 +27,61 @@ public class Simulation implements Runnable {
         this.logger = new SimulationLogger("statystyki");
     }
 
-    private void notifyListeners() {
-        for (MapChangeListener listener : listeners) {
-            listener.onMapChanged(map, "Dzień zakończony");
+    // PUBLIC API //
+
+    @Override
+    public void run() {
+        while (isRunning) {
+            synchronized (this) {
+                while (isPaused && !stepRequest) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+
+                if (stepRequest) {
+                    stepRequest = false;
+                }
+            }
+
+            simulateDay();
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                break;
+            }
         }
     }
+
+    public void step() {
+        synchronized (this) {
+            if (isPaused) {
+                stepRequest = true;
+                notifyAll();
+            }
+        }
+    }
+
+    public synchronized void pause() {
+        isPaused = true;
+    }
+
+    public synchronized void resume() {
+        isPaused = false;
+        notifyAll();
+    }
+
+    public void end() {
+        isRunning = false;
+        resume();
+        logger.close();
+    }
+
+    // GETTERS AND LISTENERS //
 
     public void addListener(MapChangeListener listener) {
         listeners.add(listener);
@@ -49,6 +102,129 @@ public class Simulation implements Runnable {
     public List<SimulationState> getHistory() {
         return history;
     }
+
+    // CORE LOGIC //
+
+    private void simulateDay() {
+        List<Animal> deadAnimals = map.removeDeadAnimals();
+        updateLifespanStats(deadAnimals);
+
+        map.moveAnimals();
+        map.animalsConsume();
+        map.animalsReproduce();
+        map.growPlants();
+        map.dayPassed();
+
+        SimulationState simulationState = saveSimulationState();
+        logger.logDay(map.getDaysElapsed(), simulationState.statistics());
+
+        notifyListeners();
+    }
+
+    // DATA PROCESSING //
+
+    private SimulationState saveSimulationState() {
+        List<Animal> allAnimals = map.getAnimals();
+        Map<Vector2d, Plant> currentPlants = map.getPlants();
+
+        Statistics stats = calculateStatistics(allAnimals, currentPlants.size());
+
+        Map<Vector2d, List<AnimalInfo>> animalSnapshot = createAnimalSnapshot(map.getFields());
+
+        SimulationState newState = new SimulationState(
+                animalSnapshot,
+                new HashMap<>(currentPlants),
+                stats
+        );
+
+        this.history.add(newState);
+        return newState;
+    }
+
+    private Statistics calculateStatistics(List<Animal> animals, int plantsCount) {
+        if (animals.isEmpty()) {
+            return new Statistics(0, plantsCount, config.mapWidth() * config.mapHeight(), 0, 0, 0, 0, List.of());
+        }
+
+        double totalEnergy = 0;
+        double totalChildren = 0;
+        int maxEnergy = 0;
+
+        for (Animal animal : animals) {
+            totalEnergy += animal.getEnergy();
+            totalChildren += animal.getChildrenCount();
+            maxEnergy = Math.max(maxEnergy, animal.getEnergy());
+        }
+
+        double avgEnergy = totalEnergy / animals.size();
+        double avgChildren = totalChildren / animals.size();
+
+        int occupiedCount = countOccupiedFields();
+        int freeFields = (config.mapWidth() * config.mapHeight()) - occupiedCount;
+
+        List<Map.Entry<String, Integer>> topGenotypes = findTopGenotypes(animals);
+
+        double avgLifespan = accumulatedLifespanStats.totalAnimals() > 0 ?
+                (double) accumulatedLifespanStats.totalLifespan() / accumulatedLifespanStats.totalAnimals() : 0;
+
+        return new Statistics(
+                animals.size(),
+                plantsCount,
+                freeFields,
+                avgEnergy,
+                avgLifespan,
+                avgChildren,
+                maxEnergy,
+                topGenotypes
+        );
+    }
+
+    private Map<Vector2d, List<AnimalInfo>> createAnimalSnapshot(Map<Vector2d, List<Animal>> worldMapFields) {
+        Map<Vector2d, List<AnimalInfo>> snapshot = new HashMap<>();
+
+        for (var entry : worldMapFields.entrySet()) {
+            List<Animal> liveAnimals = entry.getValue();
+            if (liveAnimals.isEmpty()) continue;
+
+            List<AnimalInfo> infoList = liveAnimals.stream()
+                    .map(animal -> new AnimalInfo(
+                            animal.getPosition(),
+                            animal.getEnergy(),
+                            animal.getGenotype().toString(),
+                            animal.getId(),
+                            animal.getGenotype().getActiveGene(),
+                            animal.getEatenPlants(),
+                            animal.getChildrenCount(),
+                            animal.getDescendantsCount(),
+                            animal.getAge()
+                    ))
+                    .toList();
+
+            snapshot.put(entry.getKey(), infoList);
+        }
+        return snapshot;
+    }
+
+    private void updateLifespanStats(List<Animal> deadAnimalsToday) {
+        if (deadAnimalsToday.isEmpty()) return;
+
+        int currentTotalCount = accumulatedLifespanStats.totalAnimals();
+        int currentTotalLifespan = accumulatedLifespanStats.totalLifespan();
+
+        int newDeadCount = deadAnimalsToday.size();
+        int newLifespanSum = 0;
+
+        for (Animal animal : deadAnimalsToday) {
+            newLifespanSum += animal.getAge();
+        }
+
+        this.accumulatedLifespanStats = new LifespanStats(
+                currentTotalCount + newDeadCount,
+                currentTotalLifespan + newLifespanSum
+        );
+    }
+
+    // LOW LEVEL HELPERS //
 
     private List<Animal> generateAnimals() {
         List<Animal> animals = new ArrayList<>();
@@ -77,190 +253,32 @@ public class Simulation implements Runnable {
         return animals;
     }
 
-    @Override
-    public void run() {
-        while (isRunning) {
-            synchronized (this) {
-                while (isPaused) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                }
-            }
+    private int countOccupiedFields() {
+        Set<Vector2d> occupied = new HashSet<>(map.getPlants().keySet());
 
-           simulateDay();
-
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                break;
-            }
-        }
-    }
-
-    private void simulateDay() {
-        List<Animal> deadAnimals = map.removeDeadAnimals();
-        updateLifespanStats(deadAnimals);
-
-        map.moveAnimals();
-        map.animalsConsume();
-        map.animalsReproduce();
-        map.growPlants();
-        map.dayPassed();
-
-        notifyListeners();
-        SimulationState simulationState = saveSimulationState();
-        logger.logDay(map.getDaysElapsed(), simulationState.statistics());
-    }
-
-    public void step() {
-        synchronized (this) {
-            if (isPaused) {
-                simulateDay();
-            }
-        }
-    }
-
-    private void updateLifespanStats(List<Animal> deadAnimalsToday) {
-        if (deadAnimalsToday.isEmpty()) return;
-
-        int currentTotalCount = accumulatedLifespanStats.totalAnimals();
-        int currentTotalLifespan = accumulatedLifespanStats.totalLifespan();
-
-        int newDeadCount = deadAnimalsToday.size();
-        int newLifespanSum = 0;
-
-        for (Animal animal : deadAnimalsToday) {
-            newLifespanSum += animal.getAge();
-        }
-
-        this.accumulatedLifespanStats = new LifespanStats(
-                currentTotalCount + newDeadCount,
-                currentTotalLifespan + newLifespanSum
-        );
-    }
-
-    private SimulationState saveSimulationState() {
-        List<Animal> allAnimals = map.getAnimals();
-        Map<Vector2d, List<Animal>> currentAnimalsMap = map.getFields();
-        Map<Vector2d, Plant> currentPlantsMap = map.getPlants();
-
-        int animalsCount = allAnimals.size();
-        int plantsCount = currentPlantsMap.size();
-
-        double totalEnergy = 0;
-        double totalChildren = 0;
-        int maxEnergy = 0;
-
-        for (Animal animal : allAnimals) {
-            totalEnergy += animal.getEnergy();
-            totalChildren += animal.getChildrenCount();
-
-            if (animal.getEnergy() > maxEnergy) {
-                maxEnergy = animal.getEnergy();
-            }
-        }
-
-        double avgEnergy = animalsCount > 0 ? totalEnergy / animalsCount : 0;
-        double avgChildren = animalsCount > 0 ? totalChildren / animalsCount : 0;
-
-        int mapWidth = config.mapWidth();
-        int mapHeight = config.mapHeight();
-        int totalFields = mapWidth * mapHeight;
-
-        Set<Vector2d> occupiedFields = new HashSet<>(currentPlantsMap.keySet());
-
-        for (Map.Entry<Vector2d, List<Animal>> entry : currentAnimalsMap.entrySet()) {
+        for (var entry : map.getFields().entrySet()) {
             if (!entry.getValue().isEmpty()) {
-                occupiedFields.add(entry.getKey());
+                occupied.add(entry.getKey());
             }
         }
+        return occupied.size();
+    }
 
-        int freeFields = totalFields - occupiedFields.size();
-
-        double avgLifespan = 0;
-        if (this.accumulatedLifespanStats.totalAnimals() > 0) {
-            avgLifespan = (double) this.accumulatedLifespanStats.totalLifespan()
-                    / this.accumulatedLifespanStats.totalAnimals();
-        }
-
-        Map<String, Integer> genotypeCounts = map.getAnimals().stream()
+    private List<Map.Entry<String, Integer>> findTopGenotypes(List<Animal> animals) {
+        return animals.stream()
                 .collect(Collectors.groupingBy(
                         animal -> animal.getGenotype().toString(),
                         Collectors.summingInt(x -> 1)
-                ));
-
-        List<Map.Entry<String, Integer>> top3Genotypes = genotypeCounts.entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())) // Sortowanie malejące
+                ))
+                .entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
                 .limit(3)
                 .toList();
+    }
 
-        Statistics statistics = new Statistics(
-                animalsCount,
-                plantsCount,
-                freeFields,
-                avgEnergy,
-                avgLifespan,
-                avgChildren,
-                maxEnergy,
-                top3Genotypes
-        );
-
-        Map<Vector2d, List<AnimalInfo>> animalSnapshot = new HashMap<>();
-
-        for (Map.Entry<Vector2d, List<Animal>> entry : map.getFields().entrySet()) {
-            Vector2d pos = entry.getKey();
-            List<Animal> liveAnimals = entry.getValue();
-
-            List<AnimalInfo> infoList = new ArrayList<>();
-
-            for (Animal animal : liveAnimals) {
-                infoList.add(new AnimalInfo(
-                        animal.getPosition(),
-                        animal.getEnergy(),
-                        animal.getGenotype().toString(),
-                        animal.getId(),
-                        animal.getGenotype().getActiveGene(),
-                        animal.getEatenPlants(),
-                        animal.getChildrenCount(),
-                        animal.getDescendantsCount(),
-                        animal.getAge()
-                ));
-            }
-
-            if (!infoList.isEmpty()) {
-                animalSnapshot.put(pos, infoList);
-            }
+    private void notifyListeners() {
+        for (MapChangeListener listener : listeners) {
+            listener.onMapChanged(map, "Dzień zakończony");
         }
-
-        Map<Vector2d, Plant> plantPositionsSnapshot = new HashMap<>(currentPlantsMap);
-
-        SimulationState newState = new SimulationState(
-                animalSnapshot,
-                plantPositionsSnapshot,
-                statistics
-        );
-
-        this.history.add(newState);
-        return newState;
     }
-
-    public synchronized void pause() {
-        isPaused = true;
-    }
-
-    public synchronized void resume() {
-        isPaused = false;
-        notifyAll();
-    }
-
-    public void end() {
-        isRunning = false;
-        resume();
-        logger.close();
-    }
-
 }
