@@ -12,7 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
+import javafx.util.StringConverter;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,6 +66,9 @@ public class StartMenuController {
                 configInfo.setText("Wczytano preset: " + selected);
             }
         });
+
+        setupRangeValidation(minMutationsSpinner, maxMutationsSpinner);
+        setupRangeValidation(plantMinEnergySpinner, plantMaxEnergySpinner);
     }
 
     // FXML HANDLERS //
@@ -233,5 +236,56 @@ public class StartMenuController {
 
     private void setSpinnerValue(Spinner<Integer> spinner, int value) {
         spinner.getValueFactory().setValue(value);
+    }
+
+    // Range validators
+
+    private void setupRangeValidation(Spinner<Integer> minSpinner, Spinner<Integer> maxSpinner) {
+        minSpinner.getEditor().focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!isNowFocused) {
+                validateAndSwap(minSpinner, maxSpinner);
+            }
+        });
+
+        maxSpinner.getEditor().focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!isNowFocused) {
+                validateAndSwap(minSpinner, maxSpinner);
+            }
+        });
+    }
+
+    private void validateAndSwap(Spinner<Integer> minSpinner, Spinner<Integer> maxSpinner) {
+        commitValue(minSpinner);
+        commitValue(maxSpinner);
+
+        Integer min = minSpinner.getValue();
+        Integer max = maxSpinner.getValue();
+
+        if (min == null) min = 0;
+        if (max == null) max = 0;
+
+        if (min > max) {
+            minSpinner.getValueFactory().setValue(max);
+            maxSpinner.getValueFactory().setValue(min);
+        }
+    }
+
+    private void commitValue(Spinner<Integer> spinner) {
+        if (!spinner.isEditable()) return;
+
+        String text = spinner.getEditor().getText();
+        SpinnerValueFactory<Integer> valueFactory = spinner.getValueFactory();
+
+        if (valueFactory != null) {
+            StringConverter<Integer> converter = valueFactory.getConverter();
+            if (converter != null) {
+                try {
+                    Integer value = converter.fromString(text);
+                    valueFactory.setValue(value);
+                } catch (Exception e) {
+                    spinner.getEditor().setText(converter.toString(valueFactory.getValue()));
+                }
+            }
+        }
     }
 }
