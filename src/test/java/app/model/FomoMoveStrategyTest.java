@@ -1,5 +1,6 @@
 package app.model;
 
+import app.shared.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
@@ -9,14 +10,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class FomoMoveStrategyTest {
     private GlobeMap map;
     private MoveStrategy fomoStrategy;
+
     private final int RADIUS = 2;
     private final int MIN_CROWD = 3;
 
     @BeforeEach
     void setUp() {
-        // Initialize strategy and an empty map
         fomoStrategy = new FomoMoveStrategy(RADIUS, MIN_CROWD);
-        map = new GlobeMap(10, 10, new ArrayList<>());
+        Config testConfig = new Config(
+                10, 10,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Inne parametry (nieistotne dla testu mapy/ruchu)
+                false, 0, 0
+        );
+
+        map = new GlobeMap(testConfig, new ArrayList<>());
     }
 
     @Test

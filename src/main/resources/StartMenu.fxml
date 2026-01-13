@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+
+<ScrollPane fitToWidth="true" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.presenter.StartMenuController" styleClass="main-scroll-pane">
+    <stylesheets>
+        <URL value="@menuStyles.css" />
+    </stylesheets>
+
+    <VBox alignment="CENTER" spacing="25.0" styleClass="main-container">
+        <padding>
+            <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
+        </padding>
+
+        <Label text="Konfiguracja Symulacji" styleClass="title-label" />
+
+        <VBox spacing="10" styleClass="card-pane">
+            <Label text="Zarządzanie Konfiguracją" styleClass="section-header"/>
+
+            <GridPane hgap="10" vgap="10">
+                <Label text="Wybierz preset:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <ComboBox fx:id="presetComboBox" promptText="Wybierz ustawienia..." maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS"/>
+
+                <Label text="Zapisz obecne jako:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <TextField fx:id="configNameField" promptText="Nazwa pliku..." HBox.hgrow="ALWAYS" styleClass="text-input"/>
+                    <Button text="Zapisz" onAction="#onSaveConfigClicked" styleClass="action-button, secondary-button"/>
+                </HBox>
+            </GridPane>
+
+            <Label fx:id="configInfo" styleClass="info-label"/>
+        </VBox>
+
+        <TitledPane text="Ustawienia Mapy" collapsible="false" styleClass="custom-titled-pane">
+            <GridPane hgap="15" vgap="15">
+                <Label text="Szerokość:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Spinner fx:id="mapWidthSpinner" min="15" max="50" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                <Label text="Wysokość:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Spinner fx:id="mapHeightSpinner" min="15" max="50" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            </GridPane>
+        </TitledPane>
+
+        <TitledPane text="Ustawienia Roślin" collapsible="false" styleClass="custom-titled-pane">
+            <GridPane hgap="15" vgap="15">
+                <Label text="Startowa liczba:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Spinner fx:id="initialPlantsNumSpinner" min="0" max="1000" initialValue="40" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                <Label text="Min energia:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Spinner fx:id="plantMinEnergySpinner" min="1" max="100" initialValue="10" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                <Label text="Max energia:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Spinner fx:id="plantMaxEnergySpinner" min="1" max="100" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                <Label text="Dzienny wzrost:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <Spinner fx:id="dailyPlantGrowthSpinner" min="0" max="1000" initialValue="5" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            </GridPane>
+        </TitledPane>
+
+        <TitledPane text="Ustawienia Zwierząt" collapsible="false" styleClass="custom-titled-pane">
+            <GridPane hgap="15" vgap="15">
+                <Label text="Startowa liczba:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Spinner fx:id="initialAnimalsNumSpinner" min="1" max="250" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                <Label text="Startowa energia:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Spinner fx:id="animalStartEnergySpinner" min="1" max="500" initialValue="30" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                <Label text="Koszt ruchu:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Spinner fx:id="animalEnergyLossSpinner" min="1" max="100" initialValue="1" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                <Label text="Energia do rozmnażania:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <Spinner fx:id="energyNeededToReproduceSpinner" min="1" max="500" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                <Label text="Koszt rozmnażania:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                <Spinner fx:id="energyUsedToReproduceSpinner" min="1" max="500" initialValue="10" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+            </GridPane>
+        </TitledPane>
+
+        <TitledPane text="Genetyka" collapsible="false" styleClass="custom-titled-pane">
+            <GridPane hgap="15" vgap="15">
+                <Label text="Min mutacje:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Spinner fx:id="minMutationsSpinner" min="0" max="100" initialValue="0" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                <Label text="Max mutacje:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Spinner fx:id="maxMutationsSpinner" min="0" max="100" initialValue="10" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                <Label text="Długość genomu:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Spinner fx:id="genomeLengthSpinner" min="1" max="200" initialValue="20" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            </GridPane>
+        </TitledPane>
+
+        <TitledPane text="Tryb FOMO" collapsible="false" styleClass="custom-titled-pane">
+            <VBox spacing="15">
+                <CheckBox fx:id="isFomoCheckBox" text="Włącz tryb FOMO" styleClass="custom-checkbox"/>
+                <GridPane hgap="15" vgap="15">
+                    <Label text="Zasięg wzroku:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <Spinner fx:id="fomoRadiusSpinner" min="1" max="20" initialValue="5" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                    <Label text="Wielkość tłumu:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <Spinner fx:id="fomoCrowdSizeSpinner" min="1" max="20" initialValue="5" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                </GridPane>
+            </VBox>
+        </TitledPane>
+
+        <Label fx:id="errorLabel" styleClass="error-label"/>
+
+        <Button text="ROZPOCZNIJ SYMULACJĘ" onAction="#onStartClicked" styleClass="start-button"/>
+    </VBox>
+</ScrollPane>

@@ -2,6 +2,7 @@ package app.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import app.shared.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
@@ -12,8 +13,14 @@ class GlobeMapTest {
 
     @BeforeEach
     void setUp() {
+        Config testConfig = new Config(
+                10, 10,
+                0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, // Inne parametry (nieistotne dla testu mapy/ruchu)
+                false, 0, 0
+        );
+
         // Initialize map with 10x10 dimensions for consistent testing
-        map = new GlobeMap(10, 10, new ArrayList<>());
+        map = new GlobeMap(testConfig, new ArrayList<>());
     }
 
     @Test
@@ -88,7 +95,6 @@ class GlobeMapTest {
 
         // Then: Only healthy animal remains
         assertEquals(1, map.getAnimals().size());
-        assertTrue(starving.getIsDead(), "Starving animal should be marked as dead");
         assertTrue(map.getFields().get(new Vector2d(2,2)).isEmpty(), "Field list should be updated");
     }
 

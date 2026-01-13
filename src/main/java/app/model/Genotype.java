@@ -75,4 +75,9 @@ public class Genotype {
             genes.set(index, newGene);
         }
     }
+
+    @Override
+    public String toString() {
+        return genes.toString();
+    }
 }

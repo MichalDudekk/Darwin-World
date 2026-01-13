@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.canvas.Canvas?>
+<?import java.net.URL?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="app.presenter.SimulationController"
+            prefHeight="800.0" prefWidth="1100.0"
+            styleClass="main-window">
+
+    <stylesheets>
+        <URL value="@simulationStyles.css" />
+    </stylesheets>
+
+    <top>
+        <VBox>
+            <HBox alignment="CENTER_LEFT" spacing="15" styleClass="top-bar">
+                <Label text="Zoom:" />
+                <Slider fx:id="zoomSlider" min="100" max="2000" value="600" blockIncrement="50" prefWidth="150"/>
+
+                <Separator orientation="VERTICAL" />
+
+                <CheckBox fx:id="showGridBox" text="Pokaż siatkę" selected="true" onAction="#onRedrawNeeded" styleClass="custom-checkbox"/>
+
+                <Region HBox.hgrow="ALWAYS" /> <HBox fx:id="legendContainer" spacing="15" alignment="CENTER_LEFT" styleClass="legend-box">
+            </HBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" styleClass="map-scroll-pane">
+            <StackPane>
+                <VBox alignment="CENTER" styleClass="map-container">
+                    <Canvas fx:id="simulationCanvas" height="600.0" width="600.0" onMouseClicked="#onCanvasClicked" />
+                </VBox>
+            </StackPane>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <VBox spacing="5" styleClass="bottom-bar">
+            <Label fx:id="statusLabel" text="Oczekiwanie na start..." style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d;"/>
+
+            <HBox alignment="CENTER" spacing="10">
+                <Button text="|&lt; Start" onAction="#onRewindToStart" styleClass="control-button"/>
+                <Button text="&lt; Krok" onAction="#onStepBack" styleClass="control-button"/>
+
+                <Separator orientation="VERTICAL" />
+
+                <Button text="PAUZA ||" onAction="#onPauseClicked" prefWidth="100" styleClass="control-button, pause-button"/>
+                <Button text="START ▶" onAction="#onResumeClicked" prefWidth="100" styleClass="control-button, play-button"/>
+
+                <Separator orientation="VERTICAL" />
+
+                <Button text="Krok &gt;" onAction="#onStepForward" styleClass="control-button"/>
+                <Button text="Koniec &gt;|" onAction="#onStepEnd" styleClass="control-button"/>
+            </HBox>
+        </VBox>
+    </bottom>
+
+    <right>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="400" style="-fx-background-color: transparent;">
+            <VBox spacing="15" styleClass="sidebar">
+
+                <VBox spacing="10" styleClass="card">
+                    <Label text="STATYSTYKI DNIA" styleClass="card-title" maxWidth="Infinity"/>
+
+                    <HBox alignment="BASELINE_LEFT" spacing="5">
+                        <Label text="Dzień:" style="-fx-font-size: 14px;"/>
+                        <Label fx:id="dayLabel" text="0" styleClass="big-stat-label"/>
+                    </HBox>
+
+                    <GridPane vgap="5" hgap="10">
+                        <Label text="Zwierzaki:" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="stat-label"/>
+                        <Label fx:id="allAnimalsLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+
+                        <Label text="Rośliny:" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="stat-label"/>
+                        <Label fx:id="allPlantsLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1" style="-fx-font-weight: bold;"/>
+
+                        <Label text="Wolne pola:" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="stat-label"/>
+                        <Label fx:id="freeFieldsLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                    </GridPane>
+
+                    <Separator />
+
+                    <VBox spacing="2">
+                        <Label fx:id="avgEnergyLabel" text="Śr. energia: 0" styleClass="stat-label"/>
+                        <Label fx:id="avgLifespanLabel" text="Śr. dł. życia: 0" styleClass="stat-label"/>
+                        <Label fx:id="avgChildrenCount" text="Śr. il. dzieci: 0" styleClass="stat-label"/>
+                    </VBox>
+                </VBox>
+
+                <VBox spacing="10" styleClass="card">
+                    <Label text="TOP 3 GENOTYPY" styleClass="card-title" maxWidth="Infinity"/>
+
+                    <VBox fx:id="genotypeListContainer" spacing="5">
+                    </VBox>
+                </VBox>
+
+                <VBox spacing="10" styleClass="card">
+                    <Label text="ŚLEDZONY ZWIERZAK" styleClass="card-title" maxWidth="Infinity"/>
+
+                    <Label fx:id="noAnimalSelectedLabel" text="(Kliknij na zwierzę, by śledzić)" style="-fx-font-style: italic; -fx-text-fill: #95a5a6;"/>
+
+                    <VBox fx:id="animalStatsBox" spacing="8" visible="false">
+                        <Label fx:id="trackedIdLabel" text="ID: -" style="-fx-font-size: 10px; -fx-text-fill: #95a5a6;"/>
+
+                        <VBox spacing="2">
+                            <Label text="Genotyp:" styleClass="stat-label"/>
+                            <TextArea fx:id="trackedGenotypeArea"
+                                      editable="false"
+                                      wrapText="true"
+                                      prefRowCount="2"
+                                      styleClass="genotype-area"/>
+                        </VBox>
+
+                        <GridPane vgap="5" hgap="10">
+                            <Label text="Energia:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="stat-label"/>
+                            <Label fx:id="trackedEnergyLabel" text="-" GridPane.rowIndex="0" GridPane.columnIndex="1" style="-fx-font-weight: bold;"/>
+
+                            <Label text="Wiek:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="stat-label"/>
+                            <Label fx:id="trackedAgeLabel" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                            <Label text="Dzieci:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="stat-label"/>
+                            <Label fx:id="trackedChildrenLabel" text="-" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                        </GridPane>
+
+                        <Label fx:id="trackedActiveGeneLabel" text="Aktywny gen: -" styleClass="stat-label"/>
+                        <Label fx:id="trackedPlantsLabel" text="Zjedzone: -" styleClass="stat-label"/>
+                        <Label fx:id="trackedDescendantsLabel" text="Potomkowie: -" styleClass="stat-label"/>
+
+                        <Label fx:id="trackedDeathLabel" style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;"/>
+
+                        <Button text="Zakończ śledzenie" onAction="#onStopTrackingClicked" maxWidth="Infinity" styleClass="control-button"/>
+                    </VBox>
+                </VBox>
+
+                <VBox spacing="10" styleClass="card" VBox.vgrow="ALWAYS">
+                    <Label text="HISTORIA" styleClass="card-title" maxWidth="Infinity"/>
+
+                    <ComboBox fx:id="statSelectionBox" maxWidth="Infinity" />
+
+                    <LineChart fx:id="statChart" createSymbols="false" animated="false" minHeight="200" legendVisible="false">
+                        <xAxis>
+                            <NumberAxis label="Dzień" forceZeroInRange="false"/>
+                        </xAxis>
+                        <yAxis>
+                            <NumberAxis forceZeroInRange="false"/>
+                        </yAxis>
+                    </LineChart>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </right>
+
+</BorderPane>

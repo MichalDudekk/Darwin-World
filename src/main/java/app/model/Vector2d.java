@@ -1,6 +1,8 @@
 package app.model;
 
 import java.util.Objects;
+import java.util.Vector;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Vector2d {
     private final int x;
@@ -51,6 +53,13 @@ public class Vector2d {
         return new Vector2d(resX,resY);
     }
 
+    public static Vector2d getRandom(int minX, int maxX, int minY, int maxY) {
+        int x = ThreadLocalRandom.current().nextInt(minX, maxX + 1);
+        int y = ThreadLocalRandom.current().nextInt(minY, maxY + 1);
+
+        return new Vector2d(x, y);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(x, y);
@@ -59,9 +68,8 @@ public class Vector2d {
     @Override
     public boolean equals(Object other) {
         if (this == other) return true;
-        if (!(other instanceof Vector2d)) return false;
+        if (!(other instanceof Vector2d that)) return false;
 
-        Vector2d that = (Vector2d) other;
         return this.x == that.x && this.y == that.y;
     }
 }

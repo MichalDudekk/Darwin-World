@@ -13,11 +13,8 @@ public class Animal implements Comparable<Animal>{
     private final Set<Animal> children = new HashSet<>();
     private MapDirection direction;
     private final Genotype genotype;
-    private int deathDate;
     private int eatenPlants;
     private MoveStrategy moveStrategy;
-    private boolean isTracked = false;
-    private boolean isDead = false;
 
     public Animal(int energy, Vector2d position,
                   MapDirection direction, Genotype genotype, MoveStrategy moveStrategy) {
@@ -28,32 +25,12 @@ public class Animal implements Comparable<Animal>{
         this.moveStrategy = moveStrategy;
     }
 
-    public Vector2d getDesirableMove(WorldMap map) {
-        return moveStrategy.decideNextMove(this, map);
-    }
-
-    public void rotateByGenes() {
-        direction = direction.rotate(genotype.getActiveGene());
-    }
-
-    public void nextGene() {
-        genotype.nextGene();
-    }
-
     public Vector2d getPosition() {
         return position;
     }
 
-    public boolean getIsDead() {
-        return isDead;
-    }
-
     public void setPosition(Vector2d position) {
         this.position = position;
-    }
-
-    public void setDeathDate(int deathDate) {
-        this.deathDate = deathDate;
     }
 
     public void setMoveStrategy(MoveStrategy moveStrategy) {
@@ -76,10 +53,6 @@ public class Animal implements Comparable<Animal>{
         this.direction = direction;
     }
 
-    public void setIsDead(boolean isDead) {
-        this.isDead = isDead;
-    }
-
     public int getAge() {
         return age;
     }
@@ -96,12 +69,27 @@ public class Animal implements Comparable<Animal>{
         return genotype;
     }
 
+    public int getEatenPlants() {
+        return eatenPlants;
+    }
+
+    public Vector2d getDesirableMove(WorldMap map) {
+        return moveStrategy.decideNextMove(this, map);
+    }
+
+    public void rotateByGenes() {
+        direction = direction.rotate(genotype.getActiveGene());
+    }
+
+    public void nextGene() {
+        genotype.nextGene();
+    }
+
     public void eat(Plant plant) {
         energy += plant.energyValue();
         eatenPlants++;
     }
 
-    // zależy od Paramsów - wymaga zmian
     public Animal reproduce(Animal partner, int energyLoss) {
         Genotype childGenotype = Genotype.crossover(this.genotype,partner.genotype,this.energy, partner.energy);
 
@@ -109,8 +97,11 @@ public class Animal implements Comparable<Animal>{
         this.energy -= energyLoss;
         partner.energy -= energyLoss;
 
-        Animal child = new Animal(childEnergy,this.position,
-                MapDirection.getRandom(),childGenotype,moveStrategy);
+        Animal child = new Animal(childEnergy,
+                this.position,
+                MapDirection.getRandom(),
+                childGenotype,
+                moveStrategy);
         children.add(child);
         partner.getChildren().add(child);
 
