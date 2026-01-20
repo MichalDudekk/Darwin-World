@@ -1,0 +1,19 @@
+{
+  "mapWidth": 40,
+  "mapHeight": 50,
+  "initialPlantsNum": 100,
+  "plantMinEnergy": 5,
+  "plantMaxEnergy": 10,
+  "dailyPlantGrowth": 10,
+  "initialAnimalsNum": 80,
+  "animalEnergyLoss": 2,
+  "animalStartEnergy": 50,
+  "energyNeededToReproduce": 20,
+  "energyUsedToReproduce": 10,
+  "minMutations": 0,
+  "maxMutations": 5,
+  "genomLength": 8,
+  "isFomo": false,
+  "fomoRadius": 5,
+  "fomoCrowdSize": 3
+}
