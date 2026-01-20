@@ -11,8 +11,6 @@ public class SimulationLogger {
 
     private BufferedWriter writer;
 
-    // CONSTRUCTOR //
-
     public SimulationLogger(String prefix) {
         try {
             String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
@@ -28,8 +26,6 @@ public class SimulationLogger {
             System.err.println("Nie udało się utworzyć pliku logów: " + e.getMessage());
         }
     }
-
-    // PUBLIC API //
 
     public void logDay(int day, Statistics stats) {
         if (writer == null) return;
@@ -68,8 +64,6 @@ public class SimulationLogger {
             e.printStackTrace();
         }
     }
-
-    // HELPER METHODS //
 
     private void writeHeader() throws IOException {
         if (writer == null) return;

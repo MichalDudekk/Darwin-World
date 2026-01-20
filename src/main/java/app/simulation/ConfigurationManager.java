@@ -15,14 +15,10 @@ public class ConfigurationManager {
     private final String folderPath;
     private final Gson gson;
 
-    // CONSTRUCTOR //
-
     public ConfigurationManager(String folderPath)  {
         this.folderPath = folderPath;
         this.gson = new GsonBuilder().setPrettyPrinting().create();
     }
-
-    // PUBLIC API //
 
     public void saveConfig(Config config, String filename) throws IOException {
         ensureConfigFolderExists();
@@ -45,8 +41,6 @@ public class ConfigurationManager {
             return gson.fromJson(reader, Config.class);
         }
     }
-
-    // HELPER METHODS //
 
     private void ensureConfigFolderExists() throws IOException {
         Path path = Paths.get(folderPath);
