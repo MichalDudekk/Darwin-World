@@ -10,6 +10,7 @@ public abstract class AbstractWorldMap implements WorldMap {
 
     protected int jungleBottomY;
     protected int jungleTopY;
+    protected static final double PLANT_GROWTH_JUNGLE_RATION = 0.8; // 80%
 
     protected Map<Vector2d, List<Animal>> fields;
     protected Map<Vector2d, Plant> plants = new HashMap<>();
@@ -139,7 +140,7 @@ public abstract class AbstractWorldMap implements WorldMap {
         Collections.shuffle(jungleFree);
         Collections.shuffle(stepFree);
 
-        int jungleTarget = (int) (toBeGrown * 0.8); // 80%
+        int jungleTarget = (int) (toBeGrown * PLANT_GROWTH_JUNGLE_RATION);
         int plantedInJungle = plantSeeds(jungleFree, jungleTarget);
 
         int stepTarget = toBeGrown - plantedInJungle;
