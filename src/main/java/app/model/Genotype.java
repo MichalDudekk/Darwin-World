@@ -73,6 +73,7 @@ public class Genotype {
             int newGene = (currentGene + randomStep) % POSSIBLE_GENES_COUNT;
 
             genes.set(index, newGene);
+            activeGene = genes.get(currentIndex); // mógł ulec zmianie
         }
     }
 
