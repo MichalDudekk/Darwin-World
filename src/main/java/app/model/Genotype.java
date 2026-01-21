@@ -11,7 +11,7 @@ public class Genotype {
     private List<Integer> genes;
     private int activeGene;
     private int currentIndex = 0;
-    private static final int POSSIBLE_GENES_COUNT = 8;
+    private static final int POSSIBLE_GENES_COUNT = MapDirection.getAllDirectionsCount();
 
     public Genotype(List<Integer> genes) {
         this.genes = new ArrayList<>(genes);

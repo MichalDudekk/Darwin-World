@@ -48,4 +48,8 @@ public enum MapDirection {
     public Vector2d toUnitVector() {
         return unitVector;
     }
+
+    public static int getAllDirectionsCount() {
+        return VALUES.length;
+    }
 }
