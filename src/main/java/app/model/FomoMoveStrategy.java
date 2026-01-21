@@ -37,6 +37,9 @@ public class FomoMoveStrategy extends StandardMoveStrategy{
             sumY += position.getY();
         }
 
-        return new Vector2d( (sumX/length), (sumY/length));
+        int centerX = Math.round((float) sumX /length);
+        int centerY = Math.round((float) sumY /length);
+
+        return new Vector2d( centerX, centerY );
     }
 }
