@@ -94,16 +94,16 @@ public class Animal implements Comparable<Animal>{
         Genotype childGenotype = Genotype.crossover(this.genotype,partner.genotype,this.energy, partner.energy);
 
         int childEnergy = energyLoss * 2;
-        this.energy -= energyLoss;
-        partner.energy -= energyLoss;
+        this.decreaseEnergy(energyLoss);
+        partner.decreaseEnergy(energyLoss);
 
         Animal child = new Animal(childEnergy,
                 this.position,
                 MapDirection.getRandom(),
                 childGenotype,
                 moveStrategy);
-        children.add(child);
-        partner.getChildren().add(child);
+        this.addChildren(child);
+        partner.addChildren(child);
 
         return child;
     }
@@ -139,8 +139,16 @@ public class Animal implements Comparable<Animal>{
                 .thenComparing(Animal::getId)
                 .compare(this, o);
         // UUID implementuje Comparable - UUID jest praktycznie losowe, więc można przyjąć to jako losowy wybór
-        // przy użyciu Math.random() relacja przestała by być porządkiem (przechodniość)
+        // przy użyciu Math.random() relacja przestałaby być porządkiem (przechodniość)
         // e.g. ~(A>B ^ B>C => A>C)
+    }
+
+    public void addChildren(Animal child) {
+        children.add(child);
+    }
+
+    public void decreaseEnergy(int energyLoss) {
+        energy -= energyLoss;
     }
 }
 
