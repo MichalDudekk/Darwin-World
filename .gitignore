@@ -43,4 +43,5 @@ bin/
 
 
 ### App logs ##
-/statistics
+statistics/*
+!statistics/.gitkeep
