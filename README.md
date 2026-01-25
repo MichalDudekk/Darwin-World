@@ -20,7 +20,7 @@ podlegając presji doboru naturalnego.
 ### Zaimplementowany wariant
 
 Przydzielony został nam **wariant J** czyli [**FOMO**](https://pl.wikipedia.org/wiki/FOMO).
-Więcej o tym jak wariant wpływa na zachowanie zwierząt mona przeczytać [**tutaj**](https://github.com/Soamid/obiektowe-lab/tree/master/proj).
+Więcej o tym jak wariant wpływa na zachowanie zwierząt można przeczytać [**tutaj**](https://github.com/Soamid/obiektowe-lab/tree/master/proj).
 
 ## Informacje o projekcie
 
@@ -48,6 +48,26 @@ Projekt został zrealizowany jako zadanie końcowe w ramach przedmiotu **Program
 
 ## Implementacja i Technologie
 
-## Architektura i wzorce
+Projekt został napisany w języku **Java** z wykorzystaniem biblioteki **JavaFX** do obsługi interfejsu graficznego. Logika symulacji jest całkowicie oddzielona od warstwy prezentacji, co pozwala na niezależne testowanie i rozwój backendu.
+Wszystko z zachowaniem zasady **SOLID**.
 
-## Techstack
+Kluczowe aspekty implementacyjne:
+- **Wielowątkowość**: Silnik symulacji (`SimulationEngine`) działa w osobnych wątkach, dzięki czemu interfejs użytkownika pozostaje responsywny nawet przy dużej liczbie obiektów na mapie. Odświeżanie widoku jest synchronizowane z cyklem JavaFX Application Thread.
+- **JavaFX & FXML**: Interfejs użytkownika został zaprojektowany przy użyciu plików FXML (`StartMenu.fxml`, `SimulationView.fxml`) oraz stylowany za pomocą CSS.
+- **Testy jednostkowe**: Logika biznesowa (np. `AnimalTest`) została pokryta testami z użyciem frameworka JUnit.
+
+## Architektura i wzorce
+Projekt wykorzystuje architekturę **MVC (Model-View-Controller)**, co zapewnia separację logiki biznesowej od interfejsu użytkownika:
+- **Model**: Logika ewolucyjna, zarządzanie mapą (`GlobeMap`, `AbstractWorldMap`) i stanem zwierząt.
+- **View**: Deklaratywny opis interfejsu w plikach FXML oraz stylizacja CSS.
+- **Controller**: Zarządzanie interakcjami (np. `SimulationController`, `StartMenuController`).
+
+**Zastosowane wzorce:**
+- **Observer**: System powiadomień o zmianach na mapie (`MapChangeListener`).
+- **Strategy**: Różne algorytmy ruchu (`MoveStrategy`).
+- **Singleton**: Wykorzystywany w klasach zarządzających konfiguracją (`ConfigurationManager`), aby zapewnić spójny dostęp do ustawień w całej aplikacji.
+
+### Techstack
+- **JavaFX**
+- **JUnit**
+- **Gradle**
